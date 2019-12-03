@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-const EDIT_LIST_MAX_LENGTH = 20;
+const EDIT_LIST_MAX_LENGTH = 10;
 
 type Edit = {
 	filepath: string
@@ -27,6 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (ignoreNextStepsBackReset) {
 			ignoreNextStepsBackReset = false;
 		} else {
+			console.log('resetting steps back')
 			currentStepsBack = 0;
 		}
 	});
@@ -35,15 +36,41 @@ export function activate(context: vscode.ExtensionContext) {
 		const filepath = e.document.uri.fsPath;
 
 		e.contentChanges.forEach((change) => {
+
+			// TODO if deleting code, remove edits that were "inside" of them
+			// TODO remove older edits that were on the same place?
+
 			const line = change.range.start.line;
+			const lastEdit: Edit | undefined = editList[editList.length - 1];
+			const changeIsNewline = change.text[0] === '\n' || change.text.substring(0, 2) === '\r\n';
+
+			// skip trivial one character additions on same line as last edit:
+			if (lastEdit !== undefined && lastEdit.filepath === filepath && lastEdit.line === line) {
+				if (change.text.length === 1 && changeIsNewline === false) {
+					// console.log('skipping trivial change');
+					return;
+				} else {
+					// console.log('removing old change');
+					editList.splice(-1, 1);
+				}
+			}
+
+			// remove last edit if it was adjacent to this one:
+			// if (lastEdit !== undefined) {
+			// 	console.log(`grejsimojs: ${Math.abs(lastEdit.line - line)}`)
+			// }
+			// if (lastEdit !== undefined && lastEdit.filepath === filepath && Math.abs(lastEdit.line - line) === 1) {
+			// }
+
 			const character = change.range.start.character;
 			const range = change.rangeLength;
+
 			// console.log(`line: ${line}, ${character}, ${range},${change.range.end}, "${change.text}"`)
 
-			const lastEdit = editList[editList.length - 1];
-			const numberOfNewlines = change.text?.match(/\n/g)?.length;
-			const startsWithNewline = change.text && (change.text[0] === '\n' || change.text.substring(0,2) === '\r\n');
-			// console.log(`startsWithNewline: ${startsWithNewline}`);
+			const numberOfNewLines = change.text?.match(/\n/g)?.length ?? 0;
+			// console.log(`numberOfNewLines: ${numberOfNewLines}`)
+			const numberOfRemovedLines = change.range.end.line - change.range.start.line;
+			const startsWithNewline = change.text && (changeIsNewline);
 
 			const newEdit = {
 				filepath,
@@ -52,21 +79,13 @@ export function activate(context: vscode.ExtensionContext) {
 				range,
 			};
 
-			// skip edits on same line as last one:
-			if (lastEdit !== undefined && lastEdit.filepath === filepath && lastEdit.line === line) {
-				// console.log('skipping this edit');
-				return;
-			}
-
-
 			// adjust old edits if we add new lines:
-			if (numberOfNewlines !== undefined && numberOfNewlines > 0) {
-				// console.log(`newlines: ${numberOfNewlines}`)
+			if (numberOfNewLines > 0) {
 				editList = editList.map(edit => {
 					if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
 						return {
 							...edit,
-							line: edit.line + numberOfNewlines
+							line: edit.line + numberOfNewLines
 						};
 					} else {
 						return edit;
@@ -74,9 +93,21 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 			}
 
+			// adjust old edits if we remove lines:
+			if (numberOfRemovedLines > 0) {
+				editList = editList.map(edit => {
+					if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
+						return {
+							...edit,
+							line: edit.line - numberOfRemovedLines
+						};
+					} else {
+						return edit;
+					}
+				});
+			}
 
-
-			editList.push(newEdit)
+			editList.push(newEdit);
 
 			if (editList.length > EDIT_LIST_MAX_LENGTH) {
 				editList.splice(0, 1);
@@ -86,12 +117,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let gotoEditCommand = vscode.commands.registerCommand('navigateEditHistory.moveCursorToPreviousEdit', () => {
 		const edit = editList[editList.length - 1 - currentStepsBack];
-		editList.forEach((e, index) => {
-			console.log(`${index}: ${e.line}`);
-		});
+		// editList.forEach((e, index) => {
+		// 	console.log(`${index}: ${e.line}`);
+		// });
 		// console.log(`going to line ${edit.line}, indx ${editList.length - 1 - currentStepsBack}, stepsback ${currentStepsBack}`);
-		moveToEdit(edit);
-		currentStepsBack++;
+		if (edit) {
+			moveToEdit(edit);
+			currentStepsBack++;
+		}
 	});
 
 	const moveToEdit = async (edit: Edit) => {
