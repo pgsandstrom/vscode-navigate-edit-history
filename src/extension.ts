@@ -12,7 +12,7 @@ type Edit = {
 export function activate(context: vscode.ExtensionContext) {
 
 	let currentStepsBack = 0;
-	let ignoreNextStepsBackReset = false;
+	let ignoreStepsBackResetCount = 0;
 	let editList: Edit[] = [];
 
 	const fileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/*", false, true, false);
@@ -24,10 +24,10 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	vscode.window.onDidChangeTextEditorSelection((e: vscode.TextEditorSelectionChangeEvent) => {
-		if (ignoreNextStepsBackReset) {
-			ignoreNextStepsBackReset = false;
+		if (ignoreStepsBackResetCount > 0) {
+			ignoreStepsBackResetCount-=1;
 		} else {
-			console.log('resetting steps back')
+			// console.log('resetting steps back');
 			currentStepsBack = 0;
 		}
 	});
@@ -135,11 +135,12 @@ export function activate(context: vscode.ExtensionContext) {
 		if (activeFilepath !== edit.filepath) {
 			const textdocument = await vscode.workspace.openTextDocument(edit.filepath);
 			activeEditor = await vscode.window.showTextDocument(textdocument);
+			ignoreStepsBackResetCount+=2;
 		} else {
 			activeEditor = vscode.window.activeTextEditor!;
+			ignoreStepsBackResetCount+=1;
 		}
 
-		ignoreNextStepsBackReset = true;
 		activeEditor.selection = new vscode.Selection(edit.line, edit.character, edit.line, edit.character);
 		activeEditor.revealRange(new vscode.Range(edit.line, edit.character, edit.line, edit.character));
 	};
