@@ -11,6 +11,9 @@ type Edit = {
 
 export function activate(context: vscode.ExtensionContext) {
 
+	// const ignoreFilesPattern = /^(.*settings.json|.*keybindings.json|.*.git)$/;
+	const ignoreFilesFileEnding = ['settings.json','keybindings.json', '.git'];
+
 	let currentStepsBack = 0;
 	let ignoreStepsBackResetCount = 0;
 	let editList: Edit[] = [];
@@ -35,10 +38,15 @@ export function activate(context: vscode.ExtensionContext) {
 	const documentChangeListener = vscode.workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
 		const filepath = e.document.uri.fsPath;
 
+		if(ignoreFilesFileEnding.some(fileending => filepath.endsWith(fileending))) {
+			return;
+		}
+
 		e.contentChanges.forEach((change) => {
 
 			// TODO if deleting code, remove edits that were "inside" of them
 			// TODO remove older edits that were on the same place?
+			// TODO handle new files that are not yet saved to disk
 
 			const line = change.range.start.line;
 			const lastEdit: Edit | undefined = editList[editList.length - 1];
