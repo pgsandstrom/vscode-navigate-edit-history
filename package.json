@@ -19,6 +19,22 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"configuration": {
+            "type": "object",
+            "title": "Vscode Navigate Edit History configuration",
+            "properties": {
+                "navigateEditHistory.maxHistory": {
+                    "type": "number",
+                    "default": 10,
+                    "description": "Maximum number of entries for the edits history."
+                },
+                "navigateEditHistory.logDebug": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Log a bunch of stuff to the console. Use if submitting a bug report."
+                }
+            }
+        },
 		"commands": [
 			{
 				"command": "navigateEditHistory.moveCursorToPreviousEdit",

@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-
-const EDIT_LIST_MAX_LENGTH = 10;
+import { getConfig, reloadConfig } from './config';
 
 type Edit = {
 	filepath: string
@@ -11,8 +10,10 @@ type Edit = {
 
 export function activate(context: vscode.ExtensionContext) {
 
+	reloadConfig();
+
 	// const ignoreFilesPattern = /^(.*settings.json|.*keybindings.json|.*.git)$/;
-	const ignoreFilesFileEnding = ['settings.json','keybindings.json', '.git'];
+	const ignoreFilesFileEnding = ['settings.json', 'keybindings.json', '.git'];
 
 	let currentStepsBack = 0;
 	let ignoreStepsBackResetCount = 0;
@@ -28,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.window.onDidChangeTextEditorSelection((e: vscode.TextEditorSelectionChangeEvent) => {
 		if (ignoreStepsBackResetCount > 0) {
-			ignoreStepsBackResetCount-=1;
+			ignoreStepsBackResetCount -= 1;
 		} else {
 			// console.log('resetting steps back');
 			currentStepsBack = 0;
@@ -38,7 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const documentChangeListener = vscode.workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
 		const filepath = e.document.uri.fsPath;
 
-		if(ignoreFilesFileEnding.some(fileending => filepath.endsWith(fileending))) {
+		if (ignoreFilesFileEnding.some(fileending => filepath.endsWith(fileending))) {
 			return;
 		}
 
@@ -115,9 +116,10 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 			}
 
+				if (getConfig().logDebug) { console.log(`Saving new edit at line ${newEdit.line} in ${newEdit.filepath}`); }
 			editList.push(newEdit);
 
-			if (editList.length > EDIT_LIST_MAX_LENGTH) {
+			if (editList.length > getConfig().maxSize) {
 				editList.splice(0, 1);
 			}
 		});
@@ -125,10 +127,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let gotoEditCommand = vscode.commands.registerCommand('navigateEditHistory.moveCursorToPreviousEdit', () => {
 		const edit = editList[editList.length - 1 - currentStepsBack];
-		// editList.forEach((e, index) => {
-		// 	console.log(`${index}: ${e.line}`);
-		// });
-		// console.log(`going to line ${edit.line}, indx ${editList.length - 1 - currentStepsBack}, stepsback ${currentStepsBack}`);
+		if (getConfig().logDebug) { console.log(`moving selection to line ${edit.line} in ${edit.filepath}`); }
 		if (edit) {
 			moveToEdit(edit);
 			currentStepsBack++;
@@ -143,17 +142,23 @@ export function activate(context: vscode.ExtensionContext) {
 		if (activeFilepath !== edit.filepath) {
 			const textdocument = await vscode.workspace.openTextDocument(edit.filepath);
 			activeEditor = await vscode.window.showTextDocument(textdocument);
-			ignoreStepsBackResetCount+=2;
+			ignoreStepsBackResetCount += 2;
 		} else {
 			activeEditor = vscode.window.activeTextEditor!;
-			ignoreStepsBackResetCount+=1;
+			ignoreStepsBackResetCount += 1;
 		}
 
 		activeEditor.selection = new vscode.Selection(edit.line, edit.character, edit.line, edit.character);
 		activeEditor.revealRange(new vscode.Range(edit.line, edit.character, edit.line, edit.character));
 	};
 
-	context.subscriptions.push(gotoEditCommand, onCreate, onDelete, documentChangeListener);
+	const onConfigChange = vscode.workspace.onDidChangeConfiguration(e => {
+		if (e.affectsConfiguration('navigateEditHistory')) {
+			reloadConfig();
+		}
+	});
+
+	context.subscriptions.push(gotoEditCommand, onCreate, onDelete, documentChangeListener, onConfigChange);
 }
 
 export function deactivate() { }
