@@ -29,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
     if (ignoreStepsBackResetCount > 0) {
       ignoreStepsBackResetCount -= 1
     } else {
-      // console.log('resetting steps back');
+	//   console.log('resetting steps back');
       currentStepsBack = 0
     }
   })
@@ -54,10 +54,11 @@ export function activate(context: vscode.ExtensionContext) {
         // skip trivial one character additions on same line as last edit:
         if (lastEdit !== undefined && lastEdit.filepath === filepath && lastEdit.line === line) {
           if (change.text.length === 1 && changeIsNewline === false) {
-            // console.log('skipping trivial change');
             return
           } else {
-            // console.log('removing old change');
+            if (getConfig().logDebug) {
+              console.log('removing previous change')
+            }
             editList.splice(-1, 1)
           }
         }
@@ -128,14 +129,18 @@ export function activate(context: vscode.ExtensionContext) {
   const gotoEditCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorToPreviousEdit',
     () => {
+      if (editList.length - 1 - currentStepsBack < 0) {
+        if (getConfig().logDebug) {
+          console.log('Reached the end of edit history, aborting action')
+        }
+        return
+      }
       const edit = editList[editList.length - 1 - currentStepsBack]
       if (getConfig().logDebug) {
         console.log(`moving selection to line ${edit.line} in ${edit.filepath}`)
       }
-      if (edit) {
-        moveToEdit(edit)
-        currentStepsBack++
-      }
+      moveToEdit(edit)
+      currentStepsBack++
     },
   )
 
@@ -145,7 +150,7 @@ export function activate(context: vscode.ExtensionContext) {
     let activeEditor: vscode.TextEditor
     if (activeFilepath !== edit.filepath) {
       const textdocument = await vscode.workspace.openTextDocument(edit.filepath)
-      activeEditor = await vscode.window.showTextDocument(textdocument)
+	  activeEditor = await vscode.window.showTextDocument(textdocument)
       ignoreStepsBackResetCount += 2
     } else {
       activeEditor = vscode.window.activeTextEditor!
@@ -177,5 +182,5 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-	// nothing to do here!
+  // nothing to do here!
 }
