@@ -11,10 +11,12 @@ type Edit = {
 export function activate(context: vscode.ExtensionContext) {
   reloadConfig()
 
+	const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500;
+
   const ignoreFilesFileEnding = ['settings.json', 'keybindings.json', '.git']
 
   let currentStepsBack = 0
-  let ignoreStepsBackResetCount = 0
+  let lastMoveToEditTime = 0
   let editList: Edit[] = []
 
   const fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, false)
@@ -26,11 +28,14 @@ export function activate(context: vscode.ExtensionContext) {
   })
 
   vscode.window.onDidChangeTextEditorSelection((e: vscode.TextEditorSelectionChangeEvent) => {
-    if (ignoreStepsBackResetCount > 0) {
-      ignoreStepsBackResetCount -= 1
-    } else {
-	//   console.log('resetting steps back');
-      currentStepsBack = 0
+	const timeSinceMoveToEdit = new Date().getTime()- (lastMoveToEditTime)
+    if (timeSinceMoveToEdit > TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND) {
+	  if(currentStepsBack > 0) {
+		if (getConfig().logDebug) {
+			console.log(`Resetting step back history. Time since move to edit command: ${timeSinceMoveToEdit}`)
+		}
+		currentStepsBack = 0
+	  }
     }
   })
 
@@ -45,10 +50,12 @@ export function activate(context: vscode.ExtensionContext) {
       e.contentChanges.forEach(change => {
         // TODO if deleting code, remove edits that were "inside" of them
         // TODO remove older edits that were on the same place?
-        // TODO handle new files that are not yet saved to disk
+		// TODO handle new files that are not yet saved to disk
+		// TODO add option to center when moving
 
         const line = change.range.start.line
         const lastEdit: Edit | undefined = editList[editList.length - 1]
+        // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines:
         const changeIsNewline = change.text.startsWith('\n') || change.text.startsWith('\r\n')
 
         // skip trivial one character additions on same line as last edit:
@@ -63,6 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
           }
         }
 
+        // TODO activate this
         // remove last edit if it was adjacent to this one:
         // if (lastEdit !== undefined) {
         // 	console.log(`grejsimojs: ${Math.abs(lastEdit.line - line)}`)
@@ -145,16 +153,16 @@ export function activate(context: vscode.ExtensionContext) {
   )
 
   const moveToEdit = async (edit: Edit) => {
+    lastMoveToEditTime = new Date().getTime()
+
     const activeFilepath = vscode.window.activeTextEditor?.document.uri.path
 
     let activeEditor: vscode.TextEditor
-    if (activeFilepath !== edit.filepath) {
+    if (normalizeFilepath(activeFilepath) !== normalizeFilepath(edit.filepath)) {
       const textdocument = await vscode.workspace.openTextDocument(edit.filepath)
-	  activeEditor = await vscode.window.showTextDocument(textdocument)
-      ignoreStepsBackResetCount += 2
+      activeEditor = await vscode.window.showTextDocument(textdocument)
     } else {
       activeEditor = vscode.window.activeTextEditor!
-      ignoreStepsBackResetCount += 1
     }
 
     activeEditor.selection = new vscode.Selection(
@@ -179,6 +187,13 @@ export function activate(context: vscode.ExtensionContext) {
     documentChangeListener,
     onConfigChange,
   )
+}
+
+// This is needed since vscode can butcher filepaths in these different ways:
+// /C:/work/code/tmp/Untitled-1.txt
+// c:\work\code\tmp\Untitled-1.txt
+const normalizeFilepath = (filepath?: string) => {
+  return filepath !== undefined ? filepath.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() : undefined
 }
 
 export function deactivate() {
