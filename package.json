@@ -68,12 +68,13 @@
     "pre-push": "cross-env CI=true npm run test"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "2.8.0",
-    "@typescript-eslint/parser": "2.8.0",
     "@types/glob": "7.1.1",
     "@types/mocha": "5.2.7",
     "@types/node": "12.11.7",
     "@types/vscode": "1.40.0",
+    "@typescript-eslint/eslint-plugin": "2.8.0",
+    "@typescript-eslint/parser": "2.8.0",
+    "cross-env": "^6.0.3",
     "eslint": "6.7.2",
     "eslint-config-prettier": "6.5.0",
     "glob": "7.1.5",
@@ -81,9 +82,9 @@
     "lint-staged": "9.4.2",
     "mocha": "6.2.2",
     "prettier": "1.19.1",
-    "typescript": "3.7.2",
     "tslint": "5.20.0",
     "tslint-config-prettier": "1.18.0",
+    "typescript": "3.7.2",
     "vscode-test": "1.2.2"
   },
   "husky": {
