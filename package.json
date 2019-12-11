@@ -45,7 +45,7 @@
 			{
 				"command": "navigateEditHistory.moveCursorToPreviousEdit",
 				"key": "ctrl+q",
-				"mac": "cmd+q"
+				"mac": "ctrl+q"
 			}
 		]
 	},
