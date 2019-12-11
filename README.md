@@ -14,6 +14,12 @@ TBA
 
 ## Release Notes
 
-### 0.0.1
+### 0.3.0
 
-Initial release.
+Should be pretty usable by now! But still not always handling edit history good if a file is heavily edited.
+
+## How to release
+
+Info about releasing extensions: https://code.visualstudio.com/api/working-with-extensions/publishing-extension
+
+Currently I do "vsce package" and upload manually at https://marketplace.visualstudio.com/manage/publishers/codeandstuff

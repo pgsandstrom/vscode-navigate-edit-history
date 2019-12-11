@@ -1,7 +1,7 @@
 {
   "name": "vscode-navigate-edit-history",
   "displayName": "Vscode Navigate Edit History",
-  "description": "TODO",
+  "description": "Navigate backwards in your edit history",
   "version": "0.3.0",
   "publisher": "codeandstuff",
   "engines": {
