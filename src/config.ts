@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 
 type Config = {
   maxSize: number
+  centerOnReveal: boolean
   logDebug: boolean
 }
 
@@ -18,6 +19,7 @@ export const reloadConfig = () => {
   const config = vscode.workspace.getConfiguration('navigateEditHistory')
   const newConfig = {
     maxSize: config.get<number>('maxHistory') || 10,
+    centerOnReveal: config.get<boolean>('centerOnReveal') === true,
     logDebug: config.get<boolean>('logDebug') === true,
   }
 

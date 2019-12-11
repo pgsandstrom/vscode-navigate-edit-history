@@ -11,7 +11,7 @@ type Edit = {
 export function activate(context: vscode.ExtensionContext) {
   reloadConfig()
 
-	const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500;
+  const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500
 
   const ignoreFilesFileEnding = ['settings.json', 'keybindings.json', '.git']
 
@@ -28,14 +28,16 @@ export function activate(context: vscode.ExtensionContext) {
   })
 
   vscode.window.onDidChangeTextEditorSelection((e: vscode.TextEditorSelectionChangeEvent) => {
-	const timeSinceMoveToEdit = new Date().getTime()- (lastMoveToEditTime)
+    const timeSinceMoveToEdit = new Date().getTime() - lastMoveToEditTime
     if (timeSinceMoveToEdit > TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND) {
-	  if(currentStepsBack > 0) {
-		if (getConfig().logDebug) {
-			console.log(`Resetting step back history. Time since move to edit command: ${timeSinceMoveToEdit}`)
-		}
-		currentStepsBack = 0
-	  }
+      if (currentStepsBack > 0) {
+        if (getConfig().logDebug) {
+          console.log(
+            `Resetting step back history. Time since move to edit command: ${timeSinceMoveToEdit}`,
+          )
+        }
+        currentStepsBack = 0
+      }
     }
   })
 
@@ -50,8 +52,8 @@ export function activate(context: vscode.ExtensionContext) {
       e.contentChanges.forEach(change => {
         // TODO if deleting code, remove edits that were "inside" of them
         // TODO remove older edits that were on the same place?
-		// TODO handle new files that are not yet saved to disk
-		// TODO add option to center when moving
+        // TODO handle new files that are not yet saved to disk
+        // TODO add option to center when moving
 
         const line = change.range.start.line
         const lastEdit: Edit | undefined = editList[editList.length - 1]
@@ -171,7 +173,13 @@ export function activate(context: vscode.ExtensionContext) {
       edit.line,
       edit.character,
     )
-    activeEditor.revealRange(new vscode.Range(edit.line, edit.character, edit.line, edit.character))
+    const rangeToReveal = new vscode.Range(edit.line, edit.character, edit.line, edit.character)
+    activeEditor.revealRange(
+      rangeToReveal,
+      getConfig().centerOnReveal
+        ? vscode.TextEditorRevealType.InCenterIfOutsideViewport
+        : vscode.TextEditorRevealType.Default,
+    )
   }
 
   const onConfigChange = vscode.workspace.onDidChangeConfiguration(e => {
