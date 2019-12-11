@@ -77,6 +77,7 @@
     "eslint": "6.7.2",
     "eslint-config-prettier": "6.5.0",
     "glob": "7.1.5",
+    "husky": "3.1.0",
     "lint-staged": "9.4.2",
     "mocha": "6.2.2",
     "prettier": "1.19.1",
@@ -84,6 +85,12 @@
     "tslint": "5.20.0",
     "tslint-config-prettier": "1.18.0",
     "vscode-test": "1.2.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run pre-commit",
+      "pre-push": "npm run pre-push"
+    }
   },
   "lint-staged": {
     "*.{json,md,ts,tsx,css,scss}": [
@@ -95,5 +102,6 @@
       "tslint --fix",
       "git add"
     ]
-  }
+  },
+  "dependencies": {}
 }
