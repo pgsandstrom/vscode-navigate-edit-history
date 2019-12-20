@@ -1,6 +1,5 @@
 {
-  "extends": ["tslint:recommended", "tslint-react", "tslint-config-prettier"],
-  "rulesDirectory": ["./src/styles/tslint/"],
+  "extends": ["tslint:recommended", "tslint-config-prettier"],
   "linterOptions": {
     "exclude": ["config/**/*.js", "node_modules/**/*.ts", "coverage/lcov-report/*.js"]
   },
@@ -10,7 +9,6 @@
     "member-access": false,
     "no-console": [false],
     "no-implicit-dependencies": false,
-    "no-implicit-enum-values": true,
     "no-invalid-this": true,
     "ordered-imports": true,
     "object-literal-sort-keys": false,

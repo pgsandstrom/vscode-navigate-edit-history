@@ -1,6 +1,6 @@
 module.exports = {
   env: {
-    browser: true,
+    browser: false,
     es6: true,
   },
   extends: [
@@ -23,35 +23,27 @@ module.exports = {
   },
   plugins: ['@typescript-eslint'],
   rules: {
+    // turn off bad rules:
     'no-console': 'off', // Already caught by tslint
-    'no-undef': 'off', // Currently does not work with typescript https://github.com/eslint/typescript-eslint-parser/issues/416
-    'no-unused-vars': 'off', // Currently mistakes imported interfaces for unused variables
-
-    '@typescript-eslint/array-type': 'off', // TODO ta bort?
-    '@typescript-eslint/no-explicit-any': 'off', // TODO ta bort?
-    '@typescript-eslint/explicit-function-return-type': 'off', // TODO ta bort?
-    '@typescript-eslint/explicit-member-accessibility': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
+    '@typescript-eslint/camelcase': 'off', // There are a few exceptions, like variables from the backend and stuff
+
+    // activate awesome rules:
+    '@typescript-eslint/no-unnecessary-type-assertion': ['error'],
+    '@typescript-eslint/no-extra-non-null-assertion': ['error'],
     '@typescript-eslint/no-unused-vars': ['error', {
       'vars': 'all',
       'args': 'none',
     }],
-    '@typescript-eslint/camelcase': 'off', // There are a few exceptions, like variables from the backend and stuff
-    '@typescript-eslint/no-unnecessary-type-assertion': ['error'],
-
     '@typescript-eslint/require-await': 'off', // currently buggy on 2019-11-20, see https://github.com/typescript-eslint/typescript-eslint/issues/1226
-
     '@typescript-eslint/no-unnecessary-condition': ['error', {
       'ignoreRhs': true,
     }],
     '@typescript-eslint/strict-boolean-expressions':['error', {
-      'allowNullable': true,
       'ignoreRhs': true,
     }],
-
-    // here startes the diff between frontend and backend
-
-    '@typescript-eslint/no-empty-interface': 'off', // I use this sometimes in the frontend, to have some uniformity between components
   },
-}
+};

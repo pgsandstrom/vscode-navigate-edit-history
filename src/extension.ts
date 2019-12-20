@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 import { getConfig, reloadConfig } from './config'
 
-type Edit = {
+interface Edit {
   filepath: string
   line: number
   character: number
@@ -56,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
         // TODO add option to center when moving
 
         const line = change.range.start.line
-        const lastEdit: Edit | undefined = editList[editList.length - 1]
+        const lastEdit = editList[editList.length - 1] as Edit | undefined
         // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines:
         const changeIsNewline = change.text.startsWith('\n') || change.text.startsWith('\r\n')
 
@@ -85,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         // console.log(`line: ${line}, ${character}, ${range},${change.range.end}, "${change.text}"`)
 
-        const numberOfNewLines = change.text?.match(/\n/g)?.length ?? 0
+        const numberOfNewLines = change.text.match(/\n/g)?.length ?? 0
         // console.log(`numberOfNewLines: ${numberOfNewLines}`)
         const numberOfRemovedLines = change.range.end.line - change.range.start.line
 
