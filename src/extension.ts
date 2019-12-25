@@ -49,92 +49,106 @@ export function activate(context: vscode.ExtensionContext) {
         return
       }
 
-      e.contentChanges.forEach(change => {
-        // TODO if deleting code, remove edits that were "inside" of them
-        // TODO remove older edits that were on the same place?
-        // TODO handle new files that are not yet saved to disk
-        // TODO add option to center when moving
+      // console.log(`${e.contentChanges.length} changes`)
+      // e.contentChanges.forEach(change => {
+      //   console.log(`text: ${change.text}`)
+      // })
 
-        const line = change.range.start.line
-        const lastEdit = editList[editList.length - 1] as Edit | undefined
-        // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines:
-        const changeIsNewline = change.text.startsWith('\n') || change.text.startsWith('\r\n')
+      if (e.contentChanges.length === 0) {
+        return
+      }
 
-        // skip trivial one character additions on same line as last edit:
-        if (lastEdit !== undefined && lastEdit.filepath === filepath && lastEdit.line === line) {
-          if (change.text.length === 1 && changeIsNewline === false) {
-            return
-          } else {
-            if (getConfig().logDebug) {
-              console.log('removing previous change')
-            }
-            editList.splice(-1, 1)
-          }
-        }
-
-        // TODO activate this
-        // remove last edit if it was adjacent to this one:
-        // if (lastEdit !== undefined) {
-        // 	console.log(`grejsimojs: ${Math.abs(lastEdit.line - line)}`)
-        // }
-        // if (lastEdit !== undefined && lastEdit.filepath === filepath && Math.abs(lastEdit.line - line) === 1) {
-        // }
-
-        const character = change.range.start.character
-        const range = change.rangeLength
-
-        // console.log(`line: ${line}, ${character}, ${range},${change.range.end}, "${change.text}"`)
-
-        const numberOfNewLines = change.text.match(/\n/g)?.length ?? 0
-        // console.log(`numberOfNewLines: ${numberOfNewLines}`)
-        const numberOfRemovedLines = change.range.end.line - change.range.start.line
-
-        const newEdit = {
-          filepath,
-          line: line + (changeIsNewline ? 1 : 0),
-          character,
-          range,
-        }
-
-        // adjust old edits if we add new lines:
-        if (numberOfNewLines > 0) {
-          editList = editList.map(edit => {
-            if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
-              return {
-                ...edit,
-                line: edit.line + numberOfNewLines,
-              }
-            } else {
-              return edit
-            }
-          })
-        }
-
-        // adjust old edits if we remove lines:
-        if (numberOfRemovedLines > 0) {
-          editList = editList.map(edit => {
-            if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
-              return {
-                ...edit,
-                line: edit.line - numberOfRemovedLines,
-              }
-            } else {
-              return edit
-            }
-          })
-        }
-
-        if (getConfig().logDebug) {
-          console.log(`Saving new edit at line ${newEdit.line} in ${newEdit.filepath}`)
-        }
-        editList.push(newEdit)
-
-        if (editList.length > getConfig().maxSize) {
-          editList.splice(0, 1)
-        }
-      })
+      // we only use the last content change, because often that seems to be the relevant one:
+      const lastContentChange = e.contentChanges[e.contentChanges.length - 1]
+      handleContentChange(lastContentChange, filepath)
     },
   )
+
+  const handleContentChange = (change: vscode.TextDocumentContentChangeEvent, filepath: string) => {
+    // TODO if deleting code, remove edits that were "inside" of them
+    // TODO remove older edits that were on the same place?
+    // TODO handle new files that are not yet saved to disk
+    // TODO add option to center when moving
+
+    const line = change.range.start.line
+    const lastEdit = editList[editList.length - 1] as Edit | undefined
+    // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines:
+    const changeIsNewline = change.text.startsWith('\n') || change.text.startsWith('\r\n')
+
+    if (lastEdit !== undefined && lastEdit.filepath === filepath && lastEdit.line === line) {
+      if (changeIsNewline) {
+        // If newline was added, remove last edit
+        if (getConfig().logDebug) {
+          console.log('removing previous change due to newline')
+        }
+        editList.splice(-1, 1)
+      } else {
+        // skip changes on same line as last edit:
+        return
+      }
+    }
+
+    // TODO activate this. Then maybe we can remove the "remove last edit if new edit was newline" thing
+    // remove last edit if it was adjacent to this one:
+    // if (lastEdit !== undefined) {
+    // 	console.log(`grejsimojs: ${Math.abs(lastEdit.line - line)}`)
+    // }
+    // if (lastEdit !== undefined && lastEdit.filepath === filepath && Math.abs(lastEdit.line - line) === 1) {
+    // }
+
+    const character = change.range.start.character
+    const range = change.rangeLength
+
+    // console.log(`line: ${line}, ${character}, ${range},${change.range.end}, "${change.text}"`)
+
+    const numberOfNewLines = change.text.match(/\n/g)?.length ?? 0
+    // console.log(`numberOfNewLines: ${numberOfNewLines}`)
+    const numberOfRemovedLines = change.range.end.line - change.range.start.line
+
+    const newEdit = {
+      filepath,
+      line: line + (changeIsNewline ? 1 : 0),
+      character,
+      range,
+    }
+
+    // adjust old edits if we add new lines:
+    if (numberOfNewLines > 0) {
+      editList = editList.map(edit => {
+        if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
+          return {
+            ...edit,
+            line: edit.line + numberOfNewLines,
+          }
+        } else {
+          return edit
+        }
+      })
+    }
+
+    // adjust old edits if we remove lines:
+    if (numberOfRemovedLines > 0) {
+      editList = editList.map(edit => {
+        if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
+          return {
+            ...edit,
+            line: edit.line - numberOfRemovedLines,
+          }
+        } else {
+          return edit
+        }
+      })
+    }
+
+    if (getConfig().logDebug) {
+      console.log(`Saving new edit at line ${newEdit.line} in ${newEdit.filepath}`)
+    }
+    editList.push(newEdit)
+
+    if (editList.length > getConfig().maxSize) {
+      editList.splice(0, 1)
+    }
+  }
 
   const gotoEditCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorToPreviousEdit',
