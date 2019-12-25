@@ -76,13 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
     const changeIsNewline = change.text.startsWith('\n') || change.text.startsWith('\r\n')
 
     if (lastEdit !== undefined && lastEdit.filepath === filepath && lastEdit.line === line) {
-      if (changeIsNewline) {
-        // If newline was added, remove last edit
-        if (getConfig().logDebug) {
-          console.log('removing previous change due to newline')
-        }
-        editList.splice(-1, 1)
-      } else {
+      if (changeIsNewline === false) {
         // skip changes on same line as last edit:
         return
       }
@@ -90,9 +84,17 @@ export function activate(context: vscode.ExtensionContext) {
 
     // TODO activate this. Then maybe we can remove the "remove last edit if new edit was newline" thing
     // remove last edit if it was adjacent to this one:
-    // if (lastEdit !== undefined) {
-    // 	console.log(`grejsimojs: ${Math.abs(lastEdit.line - line)}`)
-    // }
+    if (lastEdit !== undefined) {
+      const lineDiffToLastEdit = Math.abs(lastEdit.line - line)
+      if (getConfig().groupEditsWithinLines >= lineDiffToLastEdit) {
+        if (getConfig().logDebug) {
+          console.log(
+            `Change was ${lineDiffToLastEdit} lines away from last edit, so removing last edit.`,
+          )
+        }
+        editList.splice(-1, 1)
+      }
+    }
     // if (lastEdit !== undefined && lastEdit.filepath === filepath && Math.abs(lastEdit.line - line) === 1) {
     // }
 

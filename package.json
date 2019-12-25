@@ -33,6 +33,11 @@
           "default": true,
           "description": "When navigating to an edit outside the view, should we always put the edit in the center of the screen?"
         },
+        "navigateEditHistory.groupEditsWithinLines": {
+          "type": "number",
+          "default": 1,
+          "description": "Group edits if they are within a certain amount of lines from each other."
+        },
         "navigateEditHistory.logDebug": {
           "type": "boolean",
           "default": false,
