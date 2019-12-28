@@ -49,6 +49,11 @@ export function activate(context: vscode.ExtensionContext) {
         return
       }
 
+      // actions such as autoformatting can fire loads of changes at the same time. This is an attempt to ignore those kind of actions
+      if (e.contentChanges.length > 30) {
+        return
+      }
+
       // console.log(`${e.contentChanges.length} changes`)
       // e.contentChanges.forEach(change => {
       //   console.log(`text: ${change.text}`)
