@@ -43,16 +43,20 @@ export function activate(context: vscode.ExtensionContext) {
 
   const documentChangeListener = vscode.workspace.onDidChangeTextDocument(
     (e: vscode.TextDocumentChangeEvent) => {
-      const filepath = e.document.uri.fsPath
+      const filepath = e.document.uri.path
+      // console.log(`filepath: ${filepath}`)
+      // console.log(`path: ${e.document.uri.path}`)
+      // console.log(`scheme: ${e.document.uri.scheme}`)
 
       if (ignoreFilesFileEnding.some(fileending => filepath.endsWith(fileending))) {
         return
       }
 
-      // actions such as autoformatting can fire loads of changes at the same time. This is an attempt to ignore those kind of actions
-      if (e.contentChanges.length > 30) {
-        return
-      }
+      // actions such as autoformatting can fire loads of changes at the same time. Maybe we should ignore big chunks of changes?
+      // TODO: perhaps there could be a smarter way to find autoformatting actions? Like, many changes that are not next to each other?
+      // if (e.contentChanges.length > 30) {
+      // return
+      // }
 
       // console.log(`${e.contentChanges.length} changes`)
       // e.contentChanges.forEach(change => {
@@ -181,7 +185,7 @@ export function activate(context: vscode.ExtensionContext) {
     const activeFilepath = vscode.window.activeTextEditor?.document.uri.path
 
     let activeEditor: vscode.TextEditor
-    if (normalizeFilepath(activeFilepath) !== normalizeFilepath(edit.filepath)) {
+    if (activeFilepath !== edit.filepath) {
       const textdocument = await vscode.workspace.openTextDocument(edit.filepath)
       activeEditor = await vscode.window.showTextDocument(textdocument)
     } else {
@@ -216,13 +220,6 @@ export function activate(context: vscode.ExtensionContext) {
     documentChangeListener,
     onConfigChange,
   )
-}
-
-// This is needed since vscode can butcher filepaths in these different ways:
-// /C:/work/code/tmp/Untitled-1.txt
-// c:\work\code\tmp\Untitled-1.txt
-const normalizeFilepath = (filepath?: string) => {
-  return filepath !== undefined ? filepath.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() : undefined
 }
 
 export function deactivate() {
