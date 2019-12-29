@@ -58,11 +58,6 @@ export function activate(context: vscode.ExtensionContext) {
       // return
       // }
 
-      // console.log(`${e.contentChanges.length} changes`)
-      // e.contentChanges.forEach(change => {
-      //   console.log(`text: ${change.text}`)
-      // })
-
       if (e.contentChanges.length === 0) {
         return
       }
@@ -76,8 +71,6 @@ export function activate(context: vscode.ExtensionContext) {
   const handleContentChange = (change: vscode.TextDocumentContentChangeEvent, filepath: string) => {
     // TODO if deleting code, remove edits that were "inside" of them
     // TODO remove older edits that were on the same place?
-    // TODO handle new files that are not yet saved to disk
-    // TODO add option to center when moving
 
     const line = change.range.start.line
     const lastEdit = editList[editList.length - 1] as Edit | undefined
@@ -112,17 +105,11 @@ export function activate(context: vscode.ExtensionContext) {
         editList.splice(-1, 1)
       }
     }
-    // TODO activate this. Then maybe we can remove the "remove last edit if new edit was newline" thing
-    // if (lastEdit !== undefined && lastEdit.filepath === filepath && Math.abs(lastEdit.line - line) === 1) {
-    // }
 
     const character = change.range.start.character
     const range = change.rangeLength
 
-    // console.log(`line: ${line}, ${character}, ${range},${change.range.end}, "${change.text}"`)
-
     const numberOfNewLines = change.text.match(/\n/g)?.length ?? 0
-    // console.log(`numberOfNewLines: ${numberOfNewLines}`)
     const numberOfRemovedLines = change.range.end.line - change.range.start.line
 
     const newEdit = {
