@@ -91,7 +91,15 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
 
-    // TODO activate this. Then maybe we can remove the "remove last edit if new edit was newline" thing
+    if (/^[a-zA-Z1-9-]*$/.test(filepath)) {
+      if (getConfig().logDebug) {
+        console.log(
+          `Not adding to edit history since unsaved files are not supported. Path: ${filepath}`,
+        )
+      }
+      return
+    }
+
     // remove last edit if it was adjacent to this one:
     if (lastEdit !== undefined) {
       const lineDiffToLastEdit = Math.abs(lastEdit.line - line)
@@ -104,6 +112,7 @@ export function activate(context: vscode.ExtensionContext) {
         editList.splice(-1, 1)
       }
     }
+    // TODO activate this. Then maybe we can remove the "remove last edit if new edit was newline" thing
     // if (lastEdit !== undefined && lastEdit.filepath === filepath && Math.abs(lastEdit.line - line) === 1) {
     // }
 
