@@ -1,22 +1,12 @@
 # vscode-navigate-edit-history README
 
-Yet another edit history navigator extension for vscode. Offers a command to go one step further back in edit history. Any navigation or selection will reset the command to once again go to the latest edit. Any edits on the same line will be bundled into one edit action.
+Yet another edit history navigator extension for vscode. Offers a command to go one step further back in edit history. Any navigation or selection will reset the command to once again go to the latest edit. Any edits close to the last edit will be bundled into one edit history item.
 
-This extension is currently not very configurable and very opinionated. Im happy to take in suggestions, but this extension is currently only made to fit my personal workflow.
-
-## Extension Settings
-
-There are currently no settings.
+This extension is very opinionated. Im happy to take suggestions, but this extension is primarily made to support one specific workflow. You are welcome to fork and publish your own version if you like what I have made!
 
 ## Known Issues
 
-TBA
-
-## Release Notes
-
-### 0.3.0
-
-Should be pretty usable by now! But still not always handling edit history good if a file is heavily edited.
+- Cant save edit history in files that have never been saved to disk.
 
 ## How to release
 
