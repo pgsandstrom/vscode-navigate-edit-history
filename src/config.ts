@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 
 interface Config {
-  maxSize: number
+  maxHistorySize: number
   centerOnReveal: boolean
   groupEditsWithinLines: number
   logDebug: boolean
@@ -18,8 +18,8 @@ export const getConfig = (): Config => {
 
 export const reloadConfig = () => {
   const config = vscode.workspace.getConfiguration('navigateEditHistory')
-  const newConfig = {
-    maxSize: config.get<number>('maxHistory') as number,
+  const newConfig: Config = {
+    maxHistorySize: config.get<number>('maxHistorySize') as number,
     centerOnReveal: config.get<boolean>('centerOnReveal') === true,
     groupEditsWithinLines: config.get<number>('groupEditsWithinLines') as number,
     logDebug: config.get<boolean>('logDebug') === true,

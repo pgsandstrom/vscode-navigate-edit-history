@@ -23,7 +23,7 @@
       "type": "object",
       "title": "Vscode Navigate Edit History configuration",
       "properties": {
-        "navigateEditHistory.maxHistory": {
+        "navigateEditHistory.maxHistorySize": {
           "type": "number",
           "default": 10,
           "description": "Maximum number of entries for the edits history."

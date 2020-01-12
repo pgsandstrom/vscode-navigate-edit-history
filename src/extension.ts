@@ -21,10 +21,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   const fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, false)
   const onCreate = fileSystemWatcher.onDidCreate((uri: vscode.Uri) => {
-    console.log(`create: ${uri.fsPath}`)
+    //
   })
   const onDelete = fileSystemWatcher.onDidDelete((uri: vscode.Uri) => {
-    console.log(`delete: ${uri.fsPath}`)
+    //
   })
 
   vscode.window.onDidChangeTextEditorSelection((e: vscode.TextEditorSelectionChangeEvent) => {
@@ -152,7 +152,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
     editList.push(newEdit)
 
-    if (editList.length > getConfig().maxSize) {
+    if (editList.length > getConfig().maxHistorySize) {
       editList.splice(0, 1)
     }
   }
