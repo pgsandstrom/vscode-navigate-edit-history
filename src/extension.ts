@@ -13,8 +13,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500
 
-  const ignoreFilesFileEnding = ['settings.json', 'keybindings.json', '.git']
-
   let currentStepsBack = 0
   let lastMoveToEditTime = 0
   let editList: Edit[] = []
@@ -48,10 +46,6 @@ export function activate(context: vscode.ExtensionContext) {
       // console.log(`path: ${e.document.uri.path}`)
       // console.log(`scheme: ${e.document.uri.scheme}`)
 
-      if (ignoreFilesFileEnding.some(fileending => filepath.endsWith(fileending))) {
-        return
-      }
-
       // actions such as autoformatting can fire loads of changes at the same time. Maybe we should ignore big chunks of changes?
       // TODO: perhaps there could be a smarter way to find autoformatting actions? Like, many changes that are not next to each other?
       // if (e.contentChanges.length > 30) {
@@ -71,6 +65,18 @@ export function activate(context: vscode.ExtensionContext) {
   const handleContentChange = (change: vscode.TextDocumentContentChangeEvent, filepath: string) => {
     // TODO if deleting code, remove edits that were "inside" of them
     // TODO remove older edits that were on the same place?
+
+    if (
+      vscode.window.activeTextEditor !== undefined &&
+      filepath !== vscode.window.activeTextEditor.document.uri.path
+    ) {
+      if (getConfig().logDebug) {
+        console.log(`Edited non-active editor, ignoring.`)
+        console.log(`Active editor: ${vscode.window.activeTextEditor.document.uri.path}`)
+        console.log(`Filepath: ${filepath}`)
+      }
+      return
+    }
 
     const line = change.range.start.line
     const lastEdit = editList[editList.length - 1] as Edit | undefined
