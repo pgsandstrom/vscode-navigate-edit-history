@@ -100,7 +100,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // remove last edit if it was adjacent to this one:
-    if (lastEdit !== undefined) {
+    if (lastEdit !== undefined && lastEdit.filepath === filepath) {
       const lineDiffToLastEdit = Math.abs(lastEdit.line - line)
       if (getConfig().groupEditsWithinLines >= lineDiffToLastEdit) {
         if (getConfig().logDebug) {
