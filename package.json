@@ -2,7 +2,7 @@
   "name": "vscode-navigate-edit-history",
   "displayName": "Vscode Navigate Edit History",
   "description": "Navigate backwards in your edit history",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "codeandstuff",
   "engines": {
     "vscode": "^1.41.0"
@@ -69,6 +69,7 @@
     "lint": "npm run lint:js && npm run lint:ts",
     "lint:js": "node ./node_modules/eslint/bin/eslint.js --ext .ts --ext .tsx --fix src",
     "lint:ts": "tslint --fix src/**/*.ts{,x}",
+    "package": "vsce package",
     "pre-commit": "lint-staged",
     "pre-push": "cross-env CI=true npm run test"
   },
