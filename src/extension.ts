@@ -85,12 +85,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     const line = change.range.start.line
     const lastEdit = editList[editList.length - 1] as Edit | undefined
-    // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines:
+    // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines. But that is currently bugged.
     const changeIsNewline = change.text.startsWith('\n') || change.text.startsWith('\r\n')
 
     if (lastEdit !== undefined && lastEdit.filepath === filepath && lastEdit.line === line) {
       if (changeIsNewline === false) {
-        // skip changes on same line as last edit:
+        // skip changes on same line as last edit
         return
       }
     }
@@ -168,25 +168,36 @@ export function activate(context: vscode.ExtensionContext) {
     }
   }
 
+  const moveToNextEdit = () => {
+    if (editList.length - 1 - currentStepsBack < 0) {
+      if (getConfig().logDebug) {
+        console.log('Reached the end of edit history, aborting action')
+      }
+      return
+    }
+    const edit = editList[editList.length - 1 - currentStepsBack]
+    if (getConfig().logDebug) {
+      console.log(`moving selection to line ${edit.line} in ${edit.filepath}`)
+    }
+    currentStepsBack++
+    moveToEdit(edit)
+  }
+
   const gotoEditCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorToPreviousEdit',
-    () => {
-      if (editList.length - 1 - currentStepsBack < 0) {
-        if (getConfig().logDebug) {
-          console.log('Reached the end of edit history, aborting action')
-        }
-        return
-      }
-      const edit = editList[editList.length - 1 - currentStepsBack]
-      if (getConfig().logDebug) {
-        console.log(`moving selection to line ${edit.line} in ${edit.filepath}`)
-      }
-      moveToEdit(edit)
-      currentStepsBack++
-    },
+    moveToNextEdit,
   )
 
   const moveToEdit = async (edit: Edit) => {
+    const activePosition = vscode.window.activeTextEditor?.selection.active
+    const activeFilePath = vscode.window.activeTextEditor?.document.uri.path
+
+    // If we are currently standing on the edit, skip it:
+    if (activeFilePath === edit.filepath && activePosition?.line === edit.line) {
+      moveToNextEdit()
+      return
+    }
+
     lastMoveToEditTime = new Date().getTime()
 
     const activeFilepath = vscode.window.activeTextEditor?.document.uri.path
