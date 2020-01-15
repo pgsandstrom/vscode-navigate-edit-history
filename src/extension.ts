@@ -18,11 +18,16 @@ export function activate(context: vscode.ExtensionContext) {
   let editList: Edit[] = []
 
   const fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, false)
-  const onCreate = fileSystemWatcher.onDidCreate((uri: vscode.Uri) => {
-    //
-  })
   const onDelete = fileSystemWatcher.onDidDelete((uri: vscode.Uri) => {
-    //
+    editList = editList.filter(edit => {
+      if (edit.filepath === uri.path) {
+        if (getConfig().logDebug) {
+          console.log(`Removing edit due to file being deleted: ${uri.path}`)
+        }
+        return false
+      }
+      return true
+    })
   })
 
   vscode.window.onDidChangeTextEditorSelection((e: vscode.TextEditorSelectionChangeEvent) => {
@@ -215,13 +220,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   })
 
-  context.subscriptions.push(
-    gotoEditCommand,
-    onCreate,
-    onDelete,
-    documentChangeListener,
-    onConfigChange,
-  )
+  context.subscriptions.push(gotoEditCommand, onDelete, documentChangeListener, onConfigChange)
 }
 
 export function deactivate() {
