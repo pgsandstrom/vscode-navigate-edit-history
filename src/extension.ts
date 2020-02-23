@@ -9,8 +9,6 @@ interface Edit {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  reloadConfig()
-
   const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500
 
   let currentStepsBack = 0
