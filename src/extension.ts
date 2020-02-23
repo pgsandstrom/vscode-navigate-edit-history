@@ -30,19 +30,21 @@ export function activate(context: vscode.ExtensionContext) {
     })
   })
 
-  vscode.window.onDidChangeTextEditorSelection((e: vscode.TextEditorSelectionChangeEvent) => {
-    const timeSinceMoveToEdit = new Date().getTime() - lastMoveToEditTime
-    if (timeSinceMoveToEdit > TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND) {
-      if (currentStepsBack > 0) {
-        if (getConfig().logDebug) {
-          console.log(
-            `Resetting step back history. Time since move to edit command: ${timeSinceMoveToEdit}`,
-          )
+  const selectionDidChangeListener = vscode.window.onDidChangeTextEditorSelection(
+    (e: vscode.TextEditorSelectionChangeEvent) => {
+      const timeSinceMoveToEdit = new Date().getTime() - lastMoveToEditTime
+      if (timeSinceMoveToEdit > TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND) {
+        if (currentStepsBack > 0) {
+          if (getConfig().logDebug) {
+            console.log(
+              `Resetting step back history. Time since move to edit command: ${timeSinceMoveToEdit}`,
+            )
+          }
+          currentStepsBack = 0
         }
-        currentStepsBack = 0
       }
-    }
-  })
+    },
+  )
 
   const documentChangeListener = vscode.workspace.onDidChangeTextDocument(
     (e: vscode.TextDocumentChangeEvent) => {
@@ -231,7 +233,13 @@ export function activate(context: vscode.ExtensionContext) {
     }
   })
 
-  context.subscriptions.push(gotoEditCommand, onDelete, documentChangeListener, onConfigChange)
+  context.subscriptions.push(
+    gotoEditCommand,
+    onDelete,
+    selectionDidChangeListener,
+    documentChangeListener,
+    onConfigChange,
+  )
 }
 
 export function deactivate() {
