@@ -47,9 +47,6 @@ export function activate(context: vscode.ExtensionContext) {
   const documentChangeListener = vscode.workspace.onDidChangeTextDocument(
     (e: vscode.TextDocumentChangeEvent) => {
       const filepath = e.document.uri.path
-      // console.log(`filepath: ${filepath}`)
-      // console.log(`path: ${e.document.uri.path}`)
-      // console.log(`scheme: ${e.document.uri.scheme}`)
 
       // actions such as autoformatting can fire loads of changes at the same time. Maybe we should ignore big chunks of changes?
       // TODO: perhaps there could be a smarter way to find autoformatting actions? Like, many changes that are not next to each other?
@@ -168,36 +165,57 @@ export function activate(context: vscode.ExtensionContext) {
     }
   }
 
-  const moveToNextEdit = () => {
+  const moveToNextEdit = (onlyInCurrentFile: boolean) => {
     if (editList.length - 1 - currentStepsBack < 0) {
       if (getConfig().logDebug) {
         console.log('Reached the end of edit history, aborting action')
       }
       return
     }
-    const edit = editList[editList.length - 1 - currentStepsBack]
+
+    const initialCurrentStepBack = currentStepsBack
+
+    const activeFilePath = vscode.window.activeTextEditor?.document.uri.path
+    const activePosition = vscode.window.activeTextEditor?.selection.active
+
+    const relevantEditList = editList.slice(0, editList.length - currentStepsBack).reverse()
+
+    const edit = relevantEditList.find((e) => {
+      currentStepsBack++
+      // If we are currently standing on the edit, skip it:
+      if (activeFilePath === e.filepath && activePosition?.line === e.line) {
+        return false
+      }
+
+      if (onlyInCurrentFile && activeFilePath !== e.filepath) {
+        return false
+      }
+
+      return e
+    })
+
+    if (edit === undefined) {
+      // prevent a failed onlyInCurrentFile search from
+      currentStepsBack = initialCurrentStepBack
+      return
+    }
     if (getConfig().logDebug) {
       console.log(`moving selection to line ${edit.line} in ${edit.filepath}`)
     }
-    currentStepsBack++
     moveToEdit(edit)
   }
 
   const gotoEditCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorToPreviousEdit',
-    moveToNextEdit,
+    () => moveToNextEdit(false),
+  )
+
+  const gotoEditInCurrentFileCommand = vscode.commands.registerCommand(
+    'navigateEditHistory.moveCursorToPreviousEditInCurrentFile',
+    () => moveToNextEdit(true),
   )
 
   const moveToEdit = async (edit: Edit) => {
-    const activePosition = vscode.window.activeTextEditor?.selection.active
-    const activeFilePath = vscode.window.activeTextEditor?.document.uri.path
-
-    // If we are currently standing on the edit, skip it:
-    if (activeFilePath === edit.filepath && activePosition?.line === edit.line) {
-      moveToNextEdit()
-      return
-    }
-
     lastMoveToEditTime = new Date().getTime()
 
     const activeFilepath = vscode.window.activeTextEditor?.document.uri.path
@@ -233,6 +251,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     gotoEditCommand,
+    gotoEditInCurrentFileCommand,
     onDelete,
     selectionDidChangeListener,
     documentChangeListener,
