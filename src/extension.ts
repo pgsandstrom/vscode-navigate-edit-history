@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, false)
   const onDelete = fileSystemWatcher.onDidDelete((uri: vscode.Uri) => {
-    editList = editList.filter(edit => {
+    editList = editList.filter((edit) => {
       if (edit.filepath === uri.path) {
         if (getConfig().logDebug) {
           console.log(`Removing edit due to file being deleted: ${uri.path}`)
@@ -132,7 +132,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // adjust old edits if we add new lines:
     if (numberOfNewLines > 0) {
-      editList = editList.map(edit => {
+      editList = editList.map((edit) => {
         if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
           return {
             ...edit,
@@ -146,7 +146,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // adjust old edits if we remove lines:
     if (numberOfRemovedLines > 0) {
-      editList = editList.map(edit => {
+      editList = editList.map((edit) => {
         if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
           return {
             ...edit,
@@ -225,7 +225,7 @@ export function activate(context: vscode.ExtensionContext) {
     )
   }
 
-  const onConfigChange = vscode.workspace.onDidChangeConfiguration(e => {
+  const onConfigChange = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('navigateEditHistory')) {
       reloadConfig()
     }
