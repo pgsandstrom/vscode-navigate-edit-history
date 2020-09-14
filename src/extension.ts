@@ -283,7 +283,7 @@ export function activate(context: vscode.ExtensionContext) {
     // push the items
     const items: QuickPickEdit[] = editList
       .map((edit: Edit) => {
-        const discription = edit.filename + ' (' + edit.line + ')'
+        const discription = '(' + edit.line + ')'
         const pick: QuickPickEdit = {
           label: edit.lineText,
           description: discription,
@@ -291,7 +291,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // If not in file add file path to detail
-        if (edit.filepath !== currentFilePath) pick.detail = discription
+        if (edit.filepath !== currentFilePath) pick.detail = edit.filename
 
         return pick
       })
