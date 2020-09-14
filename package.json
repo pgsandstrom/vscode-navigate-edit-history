@@ -53,6 +53,10 @@
       {
         "command": "navigateEditHistory.moveCursorToPreviousEditInCurrentFile",
         "title": "Navigate back in edit history in the current file"
+      },
+      {
+        "command": "navigateEditHistory.list",
+        "title": "List edit history in all files"
       }
     ],
     "keybindings": [
