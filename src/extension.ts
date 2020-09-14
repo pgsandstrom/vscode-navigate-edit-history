@@ -223,7 +223,7 @@ export function activate(context: vscode.ExtensionContext) {
     if (getConfig().logDebug) {
       console.log(`moving selection to line ${edit.line} in ${edit.filepath}`)
     }
-    moveToEdit(edit)
+    moveToEdit(edit, getRevealType())
   }
 
   const gotoEditCommand = vscode.commands.registerCommand(
@@ -235,7 +235,12 @@ export function activate(context: vscode.ExtensionContext) {
     'navigateEditHistory.moveCursorToPreviousEditInCurrentFile',
     () => moveToNextEdit(true),
   )
-  const moveToLine = async (filepath: string, line: number, character: number) => {
+  const moveToLine = async (
+    filepath: string,
+    line: number,
+    character: number,
+    revealType: vscode.TextEditorRevealType,
+  ) => {
     lastMoveToEditTime = new Date().getTime()
 
     const activeFilepath = vscode.window.activeTextEditor?.document.uri.path
@@ -253,16 +258,16 @@ export function activate(context: vscode.ExtensionContext) {
 
     activeEditor.selection = new vscode.Selection(line, character, line, character)
     const rangeToReveal = new vscode.Range(line, character, line, character)
-    activeEditor.revealRange(
-      rangeToReveal,
-      getConfig().centerOnReveal
-        ? vscode.TextEditorRevealType.InCenterIfOutsideViewport
-        : vscode.TextEditorRevealType.Default,
-    )
+    activeEditor.revealRange(rangeToReveal, revealType)
   }
-  const moveToEdit = async (edit: Edit) => {
-    await moveToLine(edit.filepath, edit.line, edit.character)
+  const moveToEdit = async (edit: Edit, revealType: vscode.TextEditorRevealType) => {
+    await moveToLine(edit.filepath, edit.line, edit.character, revealType)
   }
+  const getRevealType = () =>
+    getConfig().centerOnReveal
+      ? vscode.TextEditorRevealType.InCenterIfOutsideViewport
+      : vscode.TextEditorRevealType.Default
+
   const list = () => {
     // Add extre edit payload for quickpicker
     type QuickPickEdit = vscode.QuickPickItem & { edit: Edit }
@@ -303,18 +308,23 @@ export function activate(context: vscode.ExtensionContext) {
       // matchOnDetail: true,
       onDidSelectItem: (item) => {
         const itemT = item as QuickPickEdit
-        moveToEdit(itemT.edit)
+        moveToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter)
       },
     }
 
     vscode.window.showQuickPick(items, options).then((selection) => {
       if (typeof selection === 'undefined') {
         // Quick pick canceled, go back to last location
-        moveToLine(currentFilePath, currentLine, currentCharacter)
+        moveToLine(
+          currentFilePath,
+          currentLine,
+          currentCharacter,
+          vscode.TextEditorRevealType.InCenter,
+        )
         return
       }
       const itemT = selection
-      moveToEdit(itemT.edit)
+      moveToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter)
     })
   }
   const listEditsCommand = vscode.commands.registerCommand('navigateEditHistory.list', () => list())
