@@ -9,12 +9,17 @@ interface Edit {
   lineText: string
 }
 
+let editList: Edit[] = []
+
 export function activate(context: vscode.ExtensionContext) {
   const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500
 
+  // init edit list from storage
+  // context.workspaceState.update('editList', [])
+  editList = context.workspaceState.get('editList') || []
+  console.log(editList)
   let currentStepsBack = 0
   let lastMoveToEditTime = 0
-  let editList: Edit[] = []
 
   const fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, false)
   const onDelete = fileSystemWatcher.onDidDelete((uri: vscode.Uri) => {
@@ -65,7 +70,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   const handleContentChange = (text: string, range: vscode.Range, filepath: string) => {
     // TODO if deleting code, remove edits that were "inside" of them
-    // TODO remove older edits that were on the same place?
 
     if (
       vscode.window.activeTextEditor !== undefined &&
@@ -179,6 +183,9 @@ export function activate(context: vscode.ExtensionContext) {
     if (editList.length > getConfig().maxHistorySize) {
       editList.splice(0, 1)
     }
+
+    // save workspace settings, persiste if workspace closes
+    context.workspaceState.update('editList', editList)
   }
 
   const moveToNextEdit = (onlyInCurrentFile: boolean) => {
@@ -383,6 +390,6 @@ export function activate(context: vscode.ExtensionContext) {
   )
 }
 
-export function deactivate() {
-  // nothing to do here!
+export function deactivate(context: vscode.ExtensionContext) {
+  //  noting to do here
 }
