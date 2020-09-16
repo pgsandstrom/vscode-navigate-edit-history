@@ -169,7 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // Remove duplicate edits, remove if line number and filename are the same
-    editList = editList.filter((e) => !(e.line === newEdit.line && e.filename === newEdit.filename))
+    pruneEditList(newEdit.line, newEdit.filepath)
 
     if (getConfig().logDebug) {
       console.log(`Saving new edit at line ${newEdit.line} in ${newEdit.filepath}`)
@@ -314,29 +314,54 @@ export function activate(context: vscode.ExtensionContext) {
       moveToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter)
     })
   }
+  const containsEdit = (line: number, filepath: string): boolean => {
+    return editList.some((e) => e.line === line && e.filepath === filepath)
+  }
+  const pruneEditList = (line: number, filepath: string): void => {
+    editList = editList.filter((e) => !(e.line === line && e.filepath === filepath))
+  }
+
+  type Commands = 'Create' | 'Remove' | 'Toggle'
+
+  const actionEditAtCursor = (command: Commands) => {
+    const editor = vscode.window.activeTextEditor
+    if (!editor) return
+
+    const position = editor.selection.active
+    const lineText = editor.document.lineAt(position.line).text
+    const filepath = editor.document.uri.path
+
+    switch (command) {
+      case 'Create':
+        handleContentChange(lineText, new vscode.Range(position, position), filepath)
+        break
+      case 'Remove':
+        pruneEditList(position.line, filepath)
+        break
+      case 'Toggle':
+        containsEdit(position.line, filepath)
+          ? actionEditAtCursor('Remove')
+          : actionEditAtCursor('Create')
+        break
+
+      default:
+        break
+    }
+  }
+
   const listEditsCommand = vscode.commands.registerCommand('navigateEditHistory.list', () => list())
+
   const createEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.createEditAtCursor',
-    () => {
-      const editor = vscode.window.activeTextEditor
-      if (!editor) return
-
-      const position = editor.selection.active
-      const lineText = editor.document.lineAt(position.line).text
-      handleContentChange(lineText, new vscode.Range(position, position), editor.document.uri.path)
-    },
+    () => actionEditAtCursor('Create'),
   )
-
   const removeEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.removeEditAtCursor',
-    () => {
-      const editor = vscode.window.activeTextEditor
-      if (!editor) return
-
-      const position = editor.selection.active
-      const lineText = editor.document.lineAt(position.line).text
-      handleContentChange(lineText, new vscode.Range(position, position), editor.document.uri.path)
-    },
+    () => actionEditAtCursor('Remove'),
+  )
+  const toggleEditAtCursorCommand = vscode.commands.registerCommand(
+    'navigateEditHistory.toggleEditAtCursor',
+    () => actionEditAtCursor('Toggle'),
   )
   const onConfigChange = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('navigateEditHistory')) {
@@ -350,6 +375,7 @@ export function activate(context: vscode.ExtensionContext) {
     listEditsCommand,
     createEditAtCursorCommand,
     removeEditAtCursorCommand,
+    toggleEditAtCursorCommand,
     onDelete,
     selectionDidChangeListener,
     documentChangeListener,
