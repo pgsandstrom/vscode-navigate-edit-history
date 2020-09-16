@@ -9,19 +9,15 @@ interface Edit {
   lineText: string
 }
 
-let editList: Edit[] = []
-
 export function activate(context: vscode.ExtensionContext) {
-  const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500
-
   // get edit list from storage
-  editList = context.workspaceState.get('editList') || []
-
+  let editList: Edit[] = context.workspaceState.get('editList') || []
   let currentStepsBack = 0
   let lastMoveToEditTime = 0
 
+  //
   const fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, false)
-  const onDelete = fileSystemWatcher.onDidDelete((uri: vscode.Uri) => {
+  const onDeleteListener = fileSystemWatcher.onDidDelete((uri: vscode.Uri) => {
     editList = editList.filter((edit) => {
       if (edit.filepath === uri.path) {
         if (getConfig().logDebug) {
@@ -36,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
   const selectionDidChangeListener = vscode.window.onDidChangeTextEditorSelection(
     (e: vscode.TextEditorSelectionChangeEvent) => {
       const timeSinceMoveToEdit = new Date().getTime() - lastMoveToEditTime
-      if (timeSinceMoveToEdit > TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND) {
+      if (timeSinceMoveToEdit > getConfig().ignoreTimeDuration) {
         if (currentStepsBack > 0) {
           if (getConfig().logDebug) {
             console.log(
@@ -48,6 +44,12 @@ export function activate(context: vscode.ExtensionContext) {
       }
     },
   )
+
+  const onConfigChangeListener = vscode.workspace.onDidChangeConfiguration((e) => {
+    if (e.affectsConfiguration('navigateEditHistory')) {
+      reloadConfig()
+    }
+  })
 
   const documentChangeListener = vscode.workspace.onDidChangeTextDocument(
     (e: vscode.TextDocumentChangeEvent) => {
@@ -63,11 +65,11 @@ export function activate(context: vscode.ExtensionContext) {
 
       // we only use the last content change, because often that seems to be the relevant one:
       const lastContentChange = e.contentChanges[e.contentChanges.length - 1]
-      handleContentChange(lastContentChange.text, lastContentChange.range, e.document.uri.path)
+      addEdit(lastContentChange.text, lastContentChange.range, e.document.uri.path)
     },
   )
 
-  const handleContentChange = (text: string, range: vscode.Range, filepath: string) => {
+  const addEdit = (text: string, range: vscode.Range, filepath: string) => {
     // TODO if deleting code, remove edits that were "inside" of them
 
     if (
@@ -184,7 +186,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // save workspace settings, persiste if workspace closes
-    save()
+    saveEdits()
   }
 
   const moveToNextEdit = (onlyInCurrentFile: boolean) => {
@@ -224,18 +226,14 @@ export function activate(context: vscode.ExtensionContext) {
     if (getConfig().logDebug) {
       console.log(`moving selection to line ${edit.line} in ${edit.filepath}`)
     }
-    moveToEdit(edit, getRevealType())
+    moveToEdit(
+      edit,
+      getConfig().centerOnReveal
+        ? vscode.TextEditorRevealType.InCenterIfOutsideViewport
+        : vscode.TextEditorRevealType.Default,
+    )
   }
 
-  const gotoEditCommand = vscode.commands.registerCommand(
-    'navigateEditHistory.moveCursorToPreviousEdit',
-    () => moveToNextEdit(false),
-  )
-
-  const gotoEditInCurrentFileCommand = vscode.commands.registerCommand(
-    'navigateEditHistory.moveCursorToPreviousEditInCurrentFile',
-    () => moveToNextEdit(true),
-  )
   const moveToLine = async (
     filepath: string,
     line: number,
@@ -264,12 +262,8 @@ export function activate(context: vscode.ExtensionContext) {
   const moveToEdit = async (edit: Edit, revealType: vscode.TextEditorRevealType) => {
     await moveToLine(edit.filepath, edit.line, edit.character, revealType)
   }
-  const getRevealType = () =>
-    getConfig().centerOnReveal
-      ? vscode.TextEditorRevealType.InCenterIfOutsideViewport
-      : vscode.TextEditorRevealType.Default
 
-  const list = () => {
+  const openQuickPickEdits = () => {
     // Add extre edit payload for quickpicker
     type QuickPickEdit = vscode.QuickPickItem & { edit: Edit }
 
@@ -326,12 +320,12 @@ export function activate(context: vscode.ExtensionContext) {
   const pruneEditList = (line: number, filepath: string): void => {
     editList = editList.filter((e) => !(e.line === line && e.filepath === filepath))
   }
-  const save = (): void => {
+  const saveEdits = (): void => {
     context.workspaceState.update('editList', editList)
   }
-  const clear = (): void => {
+  const clearEdits = (): void => {
     editList = []
-    save()
+    saveEdits()
   }
 
   type Commands = 'Create' | 'Remove' | 'Toggle' | 'Clear'
@@ -346,7 +340,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     switch (command) {
       case 'Create':
-        handleContentChange(lineText, new vscode.Range(position, position), filepath)
+        addEdit(lineText, new vscode.Range(position, position), filepath)
         break
       case 'Remove':
         pruneEditList(position.line, filepath)
@@ -355,7 +349,7 @@ export function activate(context: vscode.ExtensionContext) {
         containsEdit(position.line, filepath) ? runCommand('Remove') : runCommand('Create')
         break
       case 'Clear':
-        clear()
+        clearEdits()
         break
 
       default:
@@ -363,8 +357,19 @@ export function activate(context: vscode.ExtensionContext) {
     }
   }
 
-  const listEditsCommand = vscode.commands.registerCommand('navigateEditHistory.list', () => list())
+  const listEditsCommand = vscode.commands.registerCommand('navigateEditHistory.list', () =>
+    openQuickPickEdits(),
+  )
 
+  const gotoEditCommand = vscode.commands.registerCommand(
+    'navigateEditHistory.moveCursorToPreviousEdit',
+    () => moveToNextEdit(false),
+  )
+
+  const gotoEditInCurrentFileCommand = vscode.commands.registerCommand(
+    'navigateEditHistory.moveCursorToPreviousEditInCurrentFile',
+    () => moveToNextEdit(true),
+  )
   const createEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.createEditAtCursor',
     () => runCommand('Create'),
@@ -377,14 +382,9 @@ export function activate(context: vscode.ExtensionContext) {
     'navigateEditHistory.toggleEditAtCursor',
     () => runCommand('Toggle'),
   )
-  const clearCommand = vscode.commands.registerCommand('navigateEditHistory.clear', () =>
+  const clearCommand = vscode.commands.registerCommand('navigateEditHistory.clearEdits', () =>
     runCommand('Clear'),
   )
-  const onConfigChange = vscode.workspace.onDidChangeConfiguration((e) => {
-    if (e.affectsConfiguration('navigateEditHistory')) {
-      reloadConfig()
-    }
-  })
 
   context.subscriptions.push(
     gotoEditCommand,
@@ -394,13 +394,13 @@ export function activate(context: vscode.ExtensionContext) {
     removeEditAtCursorCommand,
     toggleEditAtCursorCommand,
     clearCommand,
-    onDelete,
+    onDeleteListener,
     selectionDidChangeListener,
     documentChangeListener,
-    onConfigChange,
+    onConfigChangeListener,
   )
 }
 
 export function deactivate(context: vscode.ExtensionContext) {
-  //  noting to do here
+  //  noting to do here, YET
 }

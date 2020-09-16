@@ -5,6 +5,7 @@ interface Config {
   centerOnReveal: boolean
   groupEditsWithinLines: number
   logDebug: boolean
+  ignoreTimeDuration: number
 }
 
 let currentConfig: Config | undefined
@@ -23,6 +24,7 @@ export const reloadConfig = () => {
     centerOnReveal: config.get<boolean>('centerOnReveal') === true,
     groupEditsWithinLines: config.get<number>('groupEditsWithinLines') as number,
     logDebug: config.get<boolean>('logDebug') === true,
+    ignoreTimeDuration: config.get<number>('ignoreTimeDuration') as number,
   }
 
   if (currentConfig !== undefined && currentConfig.logDebug !== newConfig.logDebug) {

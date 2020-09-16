@@ -42,6 +42,11 @@
           "type": "boolean",
           "default": false,
           "description": "Log a bunch of stuff to the console. Use if submitting a bug report."
+        },
+        "navigateEditHistory.ignoreTimeDuration": {
+          "type": "number",
+          "default": 500,
+          "description": "Time to ignore navigation are edit move."
         }
       }
     },
@@ -60,11 +65,11 @@
       },
       {
         "command": "navigateEditHistory.createEditAtCursor",
-        "title": "Edits: Create edit on current cursor position (add marker to current line)"
+        "title": "Edits: Create edit at cursor position (Moves edit to top of stack)"
       },
       {
         "command": "navigateEditHistory.removeEditAtCursor",
-        "title": "Edits: Remove any edits on the current line (remove marker from current line)"
+        "title": "Edits: Remove any edits on the current line"
       },
       {
         "command": "navigateEditHistory.toggleEditAtCursor",
