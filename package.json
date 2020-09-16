@@ -48,27 +48,31 @@
     "commands": [
       {
         "command": "navigateEditHistory.moveCursorToPreviousEdit",
-        "title": "Navigate back in edit history"
+        "title": "Edits: Navigate back in edit history"
       },
       {
         "command": "navigateEditHistory.moveCursorToPreviousEditInCurrentFile",
-        "title": "Navigate back in edit history in the current file"
+        "title": "Edits: Navigate back in edit history in the current file"
       },
       {
         "command": "navigateEditHistory.list",
-        "title": "List edit history in all files"
+        "title": "Edits: List edit history in all files"
       },
       {
         "command": "navigateEditHistory.createEditAtCursor",
-        "title": "Create edit on current cursor position (add marker to current line)"
+        "title": "Edits: Create edit on current cursor position (add marker to current line)"
       },
       {
         "command": "navigateEditHistory.removeEditAtCursor",
-        "title": "Remove any edits on the current line (remove marker from current line)"
+        "title": "Edits: Remove any edits on the current line (remove marker from current line)"
       },
       {
         "command": "navigateEditHistory.toggleEditAtCursor",
-        "title": "Toggle any edits on the current line"
+        "title": "Edits: Toggle any edits on the current line"
+      },
+      {
+        "command": "navigateEditHistory.clear",
+        "title": "Edits: Clear All Edits"
       }
     ],
     "keybindings": [

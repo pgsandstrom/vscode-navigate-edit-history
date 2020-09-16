@@ -14,8 +14,7 @@ let editList: Edit[] = []
 export function activate(context: vscode.ExtensionContext) {
   const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500
 
-  // init edit list from storage
-  // context.workspaceState.update('editList', [])
+  // get edit list from storage
   editList = context.workspaceState.get('editList') || []
 
   let currentStepsBack = 0
@@ -185,7 +184,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // save workspace settings, persiste if workspace closes
-    context.workspaceState.update('editList', editList)
+    save()
   }
 
   const moveToNextEdit = (onlyInCurrentFile: boolean) => {
@@ -327,10 +326,17 @@ export function activate(context: vscode.ExtensionContext) {
   const pruneEditList = (line: number, filepath: string): void => {
     editList = editList.filter((e) => !(e.line === line && e.filepath === filepath))
   }
+  const save = (): void => {
+    context.workspaceState.update('editList', editList)
+  }
+  const clear = (): void => {
+    editList = []
+    save()
+  }
 
-  type Commands = 'Create' | 'Remove' | 'Toggle'
+  type Commands = 'Create' | 'Remove' | 'Toggle' | 'Clear'
 
-  const actionEditAtCursor = (command: Commands) => {
+  const runCommand = (command: Commands) => {
     const editor = vscode.window.activeTextEditor
     if (!editor) return
 
@@ -346,9 +352,10 @@ export function activate(context: vscode.ExtensionContext) {
         pruneEditList(position.line, filepath)
         break
       case 'Toggle':
-        containsEdit(position.line, filepath)
-          ? actionEditAtCursor('Remove')
-          : actionEditAtCursor('Create')
+        containsEdit(position.line, filepath) ? runCommand('Remove') : runCommand('Create')
+        break
+      case 'Clear':
+        clear()
         break
 
       default:
@@ -360,15 +367,18 @@ export function activate(context: vscode.ExtensionContext) {
 
   const createEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.createEditAtCursor',
-    () => actionEditAtCursor('Create'),
+    () => runCommand('Create'),
   )
   const removeEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.removeEditAtCursor',
-    () => actionEditAtCursor('Remove'),
+    () => runCommand('Remove'),
   )
   const toggleEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.toggleEditAtCursor',
-    () => actionEditAtCursor('Toggle'),
+    () => runCommand('Toggle'),
+  )
+  const clearCommand = vscode.commands.registerCommand('navigateEditHistory.clear', () =>
+    runCommand('Clear'),
   )
   const onConfigChange = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('navigateEditHistory')) {
@@ -383,6 +393,7 @@ export function activate(context: vscode.ExtensionContext) {
     createEditAtCursorCommand,
     removeEditAtCursorCommand,
     toggleEditAtCursorCommand,
+    clearCommand,
     onDelete,
     selectionDidChangeListener,
     documentChangeListener,
