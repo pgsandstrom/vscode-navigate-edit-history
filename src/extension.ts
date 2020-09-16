@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
   // init edit list from storage
   // context.workspaceState.update('editList', [])
   editList = context.workspaceState.get('editList') || []
-  console.log(editList)
+
   let currentStepsBack = 0
   let lastMoveToEditTime = 0
 
