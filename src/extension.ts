@@ -6,7 +6,6 @@ interface Edit {
   character: number
   filepath: string
   filename: string
-  range: number
   lineText: string
 }
 
@@ -60,18 +59,13 @@ export function activate(context: vscode.ExtensionContext) {
 
       // we only use the last content change, because often that seems to be the relevant one:
       const lastContentChange = e.contentChanges[e.contentChanges.length - 1]
-      handleContentChange(lastContentChange, e)
+      handleContentChange(lastContentChange.text, lastContentChange.range, e.document.uri.path)
     },
   )
 
-  const handleContentChange = (
-    change: vscode.TextDocumentContentChangeEvent,
-    e: vscode.TextDocumentChangeEvent,
-  ) => {
+  const handleContentChange = (text: string, range: vscode.Range, filepath: string) => {
     // TODO if deleting code, remove edits that were "inside" of them
     // TODO remove older edits that were on the same place?
-
-    const filepath = e.document.uri.path
 
     if (
       vscode.window.activeTextEditor !== undefined &&
@@ -85,14 +79,14 @@ export function activate(context: vscode.ExtensionContext) {
       return
     }
 
-    const line = change.range.start.line
+    const line = range.start.line
     const lineText =
       vscode.window.activeTextEditor !== undefined
         ? vscode.window.activeTextEditor.document.lineAt(line).text.trim()
         : filepath
     const lastEdit = editList[editList.length - 1] as Edit | undefined
     // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines. But that is currently bugged.
-    const changeIsNewline = change.text.startsWith('\n') || change.text.startsWith('\r\n')
+    const changeIsNewline = text.startsWith('\n') || text.startsWith('\r\n')
 
     if (
       lastEdit !== undefined &&
@@ -128,23 +122,21 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
 
-    const character = change.range.start.character
-    const range = change.rangeLength
+    const character = range.start.character
     const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filepath))
     const filename =
       currentWorkspaceFolder !== undefined
         ? filepath.replace(currentWorkspaceFolder.uri.path, '')
         : filepath
 
-    const numberOfNewLines = change.text.match(/\n/g)?.length ?? 0
-    const numberOfRemovedLines = change.range.end.line - change.range.start.line
+    const numberOfNewLines = text.match(/\n/g)?.length ?? 0
+    const numberOfRemovedLines = range.end.line - range.start.line
 
     const newEdit = {
       line: line + (changeIsNewline ? 1 : 0),
       character,
       filepath,
       filename,
-      range,
       lineText,
     }
 
@@ -175,6 +167,9 @@ export function activate(context: vscode.ExtensionContext) {
         }
       })
     }
+
+    // Remove duplicate edits, remove if line number and filename are the same
+    editList = editList.filter((e) => !(e.line === newEdit.line && e.filename === newEdit.filename))
 
     if (getConfig().logDebug) {
       console.log(`Saving new edit at line ${newEdit.line} in ${newEdit.filepath}`)
@@ -272,18 +267,10 @@ export function activate(context: vscode.ExtensionContext) {
     // Add extre edit payload for quickpicker
     type QuickPickEdit = vscode.QuickPickItem & { edit: Edit }
 
-    const currentLine: number =
-      vscode.window.activeTextEditor !== undefined
-        ? vscode.window.activeTextEditor.selection.active.line + 1
-        : 0
-    const currentCharacter: number =
-      vscode.window.activeTextEditor !== undefined
-        ? vscode.window.activeTextEditor.selection.active.character + 1
-        : 0
-    const currentFilePath: string =
-      vscode.window.activeTextEditor !== undefined
-        ? vscode.window.activeTextEditor.document.uri.path
-        : ''
+    const editor = vscode.window.activeTextEditor
+    const currentLine: number = editor ? editor.selection.active.line : 0
+    const currentCharacter: number = editor ? editor.selection.active.character : 0
+    const currentFilePath: string = editor ? editor.document.uri.path : ''
 
     // push the items
     const items: QuickPickEdit[] = editList
@@ -328,7 +315,29 @@ export function activate(context: vscode.ExtensionContext) {
     })
   }
   const listEditsCommand = vscode.commands.registerCommand('navigateEditHistory.list', () => list())
+  const createEditAtCursorCommand = vscode.commands.registerCommand(
+    'navigateEditHistory.createEditAtCursor',
+    () => {
+      const editor = vscode.window.activeTextEditor
+      if (!editor) return
 
+      const position = editor.selection.active
+      const lineText = editor.document.lineAt(position.line).text
+      handleContentChange(lineText, new vscode.Range(position, position), editor.document.uri.path)
+    },
+  )
+
+  const removeEditAtCursorCommand = vscode.commands.registerCommand(
+    'navigateEditHistory.removeEditAtCursor',
+    () => {
+      const editor = vscode.window.activeTextEditor
+      if (!editor) return
+
+      const position = editor.selection.active
+      const lineText = editor.document.lineAt(position.line).text
+      handleContentChange(lineText, new vscode.Range(position, position), editor.document.uri.path)
+    },
+  )
   const onConfigChange = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('navigateEditHistory')) {
       reloadConfig()
@@ -339,6 +348,8 @@ export function activate(context: vscode.ExtensionContext) {
     gotoEditCommand,
     gotoEditInCurrentFileCommand,
     listEditsCommand,
+    createEditAtCursorCommand,
+    removeEditAtCursorCommand,
     onDelete,
     selectionDidChangeListener,
     documentChangeListener,

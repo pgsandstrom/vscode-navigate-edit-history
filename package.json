@@ -57,6 +57,18 @@
       {
         "command": "navigateEditHistory.list",
         "title": "List edit history in all files"
+      },
+      {
+        "command": "navigateEditHistory.createEditAtCursor",
+        "title": "Create edit on current cursor position (add marker to current line)"
+      },
+      {
+        "command": "navigateEditHistory.removeEditAtCursor",
+        "title": "Remove any edits on the current line (remove marker from current line)"
+      },
+      {
+        "command": "navigateEditHistory.toggleEditAtCursor",
+        "title": "Toggle any edits on the current line"
       }
     ],
     "keybindings": [
