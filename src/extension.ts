@@ -293,9 +293,12 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.TextEditorRevealType.InCenterIfOutsideViewport,
     )
   }
-  // resets cursor to begining to navigation before jumps where made
+  // resets cursor to begining of navigation before jumps where made
   const moveCursorCancelNavigation = async () => {
-    if (currentStepsBack > 0) await moveCursorToTopEdit()
+    if (currentStepsBack > 0) {
+      await moveCursorToTopEdit()
+      currentStepsBack = 0
+    }
   }
 
   const openQuickPickEdits = () => {
@@ -365,7 +368,7 @@ export function activate(context: vscode.ExtensionContext) {
     saveEdits()
   }
 
-  type Command = 'create' | 'remove' | 'toggle' | 'clear' | 'cancel'
+  type Command = 'create' | 'remove' | 'toggle' | 'clear'
 
   const runCommand = (command: Command) => {
     const editor = vscode.window.activeTextEditor
@@ -388,9 +391,6 @@ export function activate(context: vscode.ExtensionContext) {
       case 'clear':
         clearEdits()
         break
-      case 'cancel':
-        moveCursorCancelNavigation()
-        break
 
       default:
         break
@@ -400,9 +400,6 @@ export function activate(context: vscode.ExtensionContext) {
     saveEdits()
   }
 
-  const listEditsCommand = vscode.commands.registerCommand('navigateEditHistory.list', () =>
-    openQuickPickEdits(),
-  )
   const gotoEditCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorToPreviousEdit',
     () => moveCursorToNextEdit(false),
@@ -410,6 +407,13 @@ export function activate(context: vscode.ExtensionContext) {
   const gotoEditInCurrentFileCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorToPreviousEditInCurrentFile',
     () => moveCursorToNextEdit(true),
+  )
+  const goToTopStackCommand = vscode.commands.registerCommand(
+    'navigateEditHistory.moveCursorCancelNavigation',
+    () => moveCursorCancelNavigation(),
+  )
+  const listEditsCommand = vscode.commands.registerCommand('navigateEditHistory.list', () =>
+    openQuickPickEdits(),
   )
   const createEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.createEditAtCursor',
@@ -422,10 +426,6 @@ export function activate(context: vscode.ExtensionContext) {
   const toggleEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.toggleEditAtCursor',
     () => runCommand('toggle'),
-  )
-  const goToTopStackCommand = vscode.commands.registerCommand(
-    'navigateEditHistory.moveCursorCancelNavigation',
-    () => runCommand('cancel'),
   )
   const clearCommand = vscode.commands.registerCommand('navigateEditHistory.clearEdits', () =>
     runCommand('clear'),
