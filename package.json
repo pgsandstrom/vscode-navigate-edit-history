@@ -81,6 +81,10 @@
         "title": "Edits: Toggle any edits on the current line"
       },
       {
+        "command": "navigateEditHistory.moveCursorCancelNavigation",
+        "title": "Edits: Navigate back to begining of stack before any jumps"
+      },
+      {
         "command": "navigateEditHistory.clearEdits",
         "title": "Edits: Clear All Edits"
       }
