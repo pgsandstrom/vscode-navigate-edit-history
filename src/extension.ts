@@ -10,8 +10,6 @@ interface Edit {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500
-
   // get edit list from storage
   let editList: Edit[] = context.workspaceState.get('editList') || []
   let currentStepsBack = 0
@@ -33,7 +31,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   const selectionDidChangeListener = vscode.window.onDidChangeTextEditorSelection(
     (e: vscode.TextEditorSelectionChangeEvent) => {
+      const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500
       const timeSinceMoveToEdit = new Date().getTime() - lastMoveToEditTime
+
       if (timeSinceMoveToEdit > TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND) {
         if (currentStepsBack > 0) {
           if (getConfig().logDebug) {
@@ -44,6 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
 
           if (getConfig().topStackWhenMove)
             moveEditTopStackByIndex(editList.length - currentStepsBack)
+
           currentStepsBack = 0
         }
       }
@@ -63,7 +64,6 @@ export function activate(context: vscode.ExtensionContext) {
       // if (e.contentChanges.length > 30) {
       // return
       // }
-
       if (e.contentChanges.length === 0) {
         return
       }
@@ -108,7 +108,7 @@ export function activate(context: vscode.ExtensionContext) {
     const lineText =
       vscode.window.activeTextEditor !== undefined
         ? vscode.window.activeTextEditor.document.lineAt(line).text.trim()
-        : filepath
+        : 'Text Not Found'
     const lastEdit = editList[editList.length - 1] as Edit | undefined
     // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines. But that is currently bugged.
     const changeIsNewline = text.startsWith('\n') || text.startsWith('\r\n')
@@ -271,6 +271,8 @@ export function activate(context: vscode.ExtensionContext) {
         preserveFocus: true,
         preview: true,
       })
+      // if moving to a new file center, minimizes jurking of cursor
+      revealType = vscode.TextEditorRevealType.InCenter
     } else {
       activeEditor = vscode.window.activeTextEditor!
     }
@@ -377,17 +379,18 @@ export function activate(context: vscode.ExtensionContext) {
       default:
         break
     }
+
+    currentStepsBack = 0
+    saveEdits()
   }
 
   const listEditsCommand = vscode.commands.registerCommand('navigateEditHistory.list', () =>
     openQuickPickEdits(),
   )
-
   const gotoEditCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorToPreviousEdit',
     () => moveToNextEdit(false),
   )
-
   const gotoEditInCurrentFileCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorToPreviousEditInCurrentFile',
     () => moveToNextEdit(true),
@@ -420,7 +423,6 @@ export function activate(context: vscode.ExtensionContext) {
     selectionDidChangeListener,
     documentChangeListener,
     onConfigChangeListener,
-    // stateChangeListener,
   )
 }
 

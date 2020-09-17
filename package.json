@@ -81,7 +81,7 @@
         "title": "Edits: Toggle any edits on the current line"
       },
       {
-        "command": "navigateEditHistory.clear",
+        "command": "navigateEditHistory.clearEdits",
         "title": "Edits: Clear All Edits"
       }
     ],
