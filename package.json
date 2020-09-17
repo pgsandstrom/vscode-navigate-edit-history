@@ -43,10 +43,15 @@
           "default": false,
           "description": "Log a bunch of stuff to the console. Use if submitting a bug report."
         },
-        "navigateEditHistory.ignoreTimeDuration": {
-          "type": "number",
-          "default": 500,
-          "description": "Time to ignore navigation are edit move."
+        "navigateEditHistory.topStackWhenQuickPickSelect": {
+          "type": "boolean",
+          "default": false,
+          "description": "Move edit to top of stack on quick pick select."
+        },
+        "navigateEditHistory.topStackWhenMove": {
+          "type": "boolean",
+          "default": false,
+          "description": "Move edit to top of stack on cursor position change"
         }
       }
     },

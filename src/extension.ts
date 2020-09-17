@@ -10,6 +10,8 @@ interface Edit {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  const TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND = 500
+
   // get edit list from storage
   let editList: Edit[] = context.workspaceState.get('editList') || []
   let currentStepsBack = 0
@@ -32,13 +34,16 @@ export function activate(context: vscode.ExtensionContext) {
   const selectionDidChangeListener = vscode.window.onDidChangeTextEditorSelection(
     (e: vscode.TextEditorSelectionChangeEvent) => {
       const timeSinceMoveToEdit = new Date().getTime() - lastMoveToEditTime
-      if (timeSinceMoveToEdit > getConfig().ignoreTimeDuration) {
+      if (timeSinceMoveToEdit > TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND) {
         if (currentStepsBack > 0) {
           if (getConfig().logDebug) {
             console.log(
               `Resetting step back history. Time since move to edit command: ${timeSinceMoveToEdit}`,
             )
           }
+
+          if (getConfig().topStackWhenMove)
+            moveEditTopStackByIndex(editList.length - currentStepsBack)
           currentStepsBack = 0
         }
       }
@@ -68,6 +73,21 @@ export function activate(context: vscode.ExtensionContext) {
       addEdit(lastContentChange.text, lastContentChange.range, e.document.uri.path)
     },
   )
+
+  // const stateChangeListener = vscode.window.onDidChangeWindowState((e) => {
+  //   if (currentStepsBack > 0) moveEditTopStackByIndex(currentStepsBack)
+  // })
+
+  const moveEditTopStackByIndex = (index: number): void => {
+    if (index < 0 || index >= editList.length) return
+    const edit = editList[index]
+    editList.splice(index, 1)
+    editList.push(edit)
+  }
+
+  const moveEditTopStack = (edit: Edit): void => {
+    moveEditTopStackByIndex(editList.indexOf(edit))
+  }
 
   const addEdit = (text: string, range: vscode.Range, filepath: string) => {
     // TODO if deleting code, remove edits that were "inside" of them
@@ -135,7 +155,7 @@ export function activate(context: vscode.ExtensionContext) {
         : filepath
 
     const numberOfNewLines = text.match(/\n/g)?.length ?? 0
-    const numberOfRemovedLines = range.end.line - range.start.line
+    const removedLines = range.end.line - range.start.line
 
     const newEdit = {
       line: line + (changeIsNewline ? 1 : 0),
@@ -160,12 +180,12 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // adjust old edits if we remove lines:
-    if (numberOfRemovedLines > 0) {
+    if (removedLines > 0) {
       editList = editList.map((edit) => {
         if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
           return {
             ...edit,
-            line: edit.line - numberOfRemovedLines,
+            line: edit.line - removedLines,
           }
         } else {
           return edit
@@ -173,7 +193,7 @@ export function activate(context: vscode.ExtensionContext) {
       })
     }
 
-    // Remove duplicate edits, remove if line number and filename are the same
+    // remove duplicate edits, remove if line number and filename are the same
     pruneEditList(newEdit.line, newEdit.filepath)
 
     if (getConfig().logDebug) {
@@ -312,6 +332,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
       const itemT = selection
       moveToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter)
+
+      if (getConfig().topStackWhenQuickPickSelect) moveEditTopStack(itemT.edit)
     })
   }
   const containsEdit = (line: number, filepath: string): boolean => {
@@ -328,9 +350,9 @@ export function activate(context: vscode.ExtensionContext) {
     saveEdits()
   }
 
-  type Commands = 'Create' | 'Remove' | 'Toggle' | 'Clear'
+  type Command = 'create' | 'remove' | 'toggle' | 'clear'
 
-  const runCommand = (command: Commands) => {
+  const runCommand = (command: Command) => {
     const editor = vscode.window.activeTextEditor
     if (!editor) return
 
@@ -339,16 +361,16 @@ export function activate(context: vscode.ExtensionContext) {
     const filepath = editor.document.uri.path
 
     switch (command) {
-      case 'Create':
+      case 'create':
         addEdit(lineText, new vscode.Range(position, position), filepath)
         break
-      case 'Remove':
+      case 'remove':
         pruneEditList(position.line, filepath)
         break
-      case 'Toggle':
-        containsEdit(position.line, filepath) ? runCommand('Remove') : runCommand('Create')
+      case 'toggle':
+        containsEdit(position.line, filepath) ? runCommand('remove') : runCommand('create')
         break
-      case 'Clear':
+      case 'clear':
         clearEdits()
         break
 
@@ -372,18 +394,18 @@ export function activate(context: vscode.ExtensionContext) {
   )
   const createEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.createEditAtCursor',
-    () => runCommand('Create'),
+    () => runCommand('create'),
   )
   const removeEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.removeEditAtCursor',
-    () => runCommand('Remove'),
+    () => runCommand('remove'),
   )
   const toggleEditAtCursorCommand = vscode.commands.registerCommand(
     'navigateEditHistory.toggleEditAtCursor',
-    () => runCommand('Toggle'),
+    () => runCommand('toggle'),
   )
   const clearCommand = vscode.commands.registerCommand('navigateEditHistory.clearEdits', () =>
-    runCommand('Clear'),
+    runCommand('clear'),
   )
 
   context.subscriptions.push(
@@ -398,6 +420,7 @@ export function activate(context: vscode.ExtensionContext) {
     selectionDidChangeListener,
     documentChangeListener,
     onConfigChangeListener,
+    // stateChangeListener,
   )
 }
 
