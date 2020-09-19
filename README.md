@@ -28,7 +28,7 @@ This extension contributes the following commands (Set in Keyboard Preferences):
 - `navigateEditHistory.moveCursorCancelNavigation`: Edits: Navigate back to beginning of stack before any jumps
 - `navigateEditHistory.clearEdits`: Edits: Clear All Edits
 
-This extension contributes the following settings "Set in User Preferences):
+This extension contributes the following settings (Set in User Preferences):
 
 - `navigateEditHistory.maxHistorySize`: Maximum number of entries for the edits history.
 - `navigateEditHistory.centerOnReveal`: When navigating to an edit outside the view, should we always put the edit in the center of the screen?
@@ -48,3 +48,5 @@ This extension is very opinionated. I'm happy to take suggestions, but this exte
 ## Known Issues
 
 - Cant save edit history in files that have never been saved to disk.
+
+[ Logo Credit ](https://icons8.com/)
