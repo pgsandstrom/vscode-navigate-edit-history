@@ -83,7 +83,7 @@
       },
       {
         "command": "navigateEditHistory.moveCursorCancelNavigation",
-        "title": "Edits: Navigate back to begining of stack before any jumps"
+        "title": "Edtis: Cancel navigate back in edit history and return to starting position"
       },
       {
         "command": "navigateEditHistory.clearEdits",
