@@ -105,10 +105,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const line = range.start.line
-    const lineText =
-      vscode.window.activeTextEditor !== undefined
-        ? vscode.window.activeTextEditor.document.lineAt(line).text.trim()
-        : 'Text Not Found'
+    const lineText = text.trim()
     const lastEdit = editList[editList.length - 1] as Edit | undefined
     // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines. But that is currently bugged.
     const changeIsNewline = text.startsWith('\n') || text.startsWith('\r\n')
@@ -149,6 +146,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const character = range.start.character
     const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filepath))
+    // remove workspace path from filepath
     const filename =
       currentWorkspaceFolder !== undefined
         ? filepath.replace(currentWorkspaceFolder.uri.path, '')
@@ -354,11 +352,17 @@ export function activate(context: vscode.ExtensionContext) {
       if (getConfig().topStackWhenQuickPickSelect) moveEditTopStack(itemT.edit)
     })
   }
-  const containsEdit = (line: number, filepath: string): boolean => {
-    return editList.some((e) => e.line === line && e.filepath === filepath)
+  const predicate = (e: Edit, line: number, filepath: string): boolean => {
+    // if line number and file path are equal
+    // reg exp is used to ignore case, important for avoiding duplicates
+    return e.line === line && new RegExp(e.filepath, 'i').test(filepath)
   }
+  const containsEdit = (line: number, filepath: string): boolean => {
+    return editList.some((e) => predicate(e, line, filepath))
+  }
+  // filter remove all including duplicates
   const pruneEditList = (line: number, filepath: string): void => {
-    editList = editList.filter((e) => !(e.line === line && e.filepath === filepath))
+    editList = editList.filter((e) => !predicate(e, line, filepath))
   }
   const saveEdits = (): void => {
     context.workspaceState.update('editList', editList)
