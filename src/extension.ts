@@ -300,7 +300,8 @@ export function activate(context: vscode.ExtensionContext) {
     // push the items
     const items: QuickPickEdit[] = editList
       .map((edit: Edit) => {
-        const discription = '(' + edit.line + ')'
+        // vscode line numbers start at 1, increment for display
+        const discription = '(' + (edit.line + 1) + ')'
         const pick: QuickPickEdit = {
           label: edit.lineText,
           description: discription,
