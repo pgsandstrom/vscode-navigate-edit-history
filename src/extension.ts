@@ -111,18 +111,6 @@ export function activate(context: vscode.ExtensionContext) {
     // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines. But that is currently bugged.
     const changeIsNewline = textChange.startsWith('\n') || textChange.startsWith('\r\n')
 
-    if (
-      lastEdit !== undefined &&
-      lastEdit.filepath === filepath &&
-      lastEdit.line === line &&
-      lastEdit.lineText === lineText
-    ) {
-      if (changeIsNewline === false) {
-        // skip changes on same line as last edit
-        return
-      }
-    }
-
     if (/^[a-zA-Z1-9-]*$/.test(filepath)) {
       if (getConfig().logDebug) {
         console.log(
