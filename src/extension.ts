@@ -70,8 +70,6 @@ export function activate(context: vscode.ExtensionContext) {
 
       // iterate over all changes, nessisary to keep old edits line numbers up to date
       e.contentChanges.forEach((change) => addEdit(change.text, change.range, e.document))
-      // const lastContentChange = e.contentChanges[e.contentChanges.length - 1]
-      // addEdit(lastContentChange.text, lastContentChange.range, e.document)
     },
   )
 
@@ -101,12 +99,6 @@ export function activate(context: vscode.ExtensionContext) {
       return
     }
 
-    const lastEdit = editList[editList.length - 1] as Edit | undefined
-    // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines. But that is currently bugged.
-    const changeIsNewline = textChange.startsWith('\n') || textChange.startsWith('\r\n')
-    const line = range.start.line + (changeIsNewline ? 1 : 0)
-    const lineText = document.lineAt(line).text.trim()
-
     if (/^[a-zA-Z1-9-]*$/.test(filepath)) {
       if (getConfig().logDebug) {
         console.log(
@@ -114,6 +106,31 @@ export function activate(context: vscode.ExtensionContext) {
         )
       }
       return
+    }
+
+    // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines. But that is currently bugged.
+    const changeIsNewline = textChange.startsWith('\n') || textChange.startsWith('\r\n')
+    const line = range.start.line + (changeIsNewline ? 1 : 0)
+    const lineText = document.lineAt(line).text.trim()
+    const character = range.start.character
+
+    const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filepath))
+    // remove workspace path from filepath
+    const filename =
+      currentWorkspaceFolder !== undefined
+        ? filepath.replace(currentWorkspaceFolder.uri.path, '')
+        : filepath
+
+    const numberOfNewLines = textChange.match(/\n/g)?.length ?? 0
+    const removedLines = range.end.line - range.start.line
+
+    const lastEdit = editList[editList.length - 1] as Edit | undefined
+    const newEdit = {
+      line,
+      character,
+      filepath,
+      filename,
+      lineText,
     }
 
     // remove last edit if it was adjacent to this one:
@@ -127,25 +144,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
         editList.splice(-1, 1)
       }
-    }
-
-    const character = range.start.character
-    const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filepath))
-    // remove workspace path from filepath
-    const filename =
-      currentWorkspaceFolder !== undefined
-        ? filepath.replace(currentWorkspaceFolder.uri.path, '')
-        : filepath
-
-    const numberOfNewLines = textChange.match(/\n/g)?.length ?? 0
-    const removedLines = range.end.line - range.start.line
-
-    const newEdit = {
-      line,
-      character,
-      filepath,
-      filename,
-      lineText,
     }
 
     // adjust old edits if we add new lines:
