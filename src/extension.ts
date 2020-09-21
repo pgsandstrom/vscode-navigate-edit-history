@@ -68,12 +68,10 @@ export function activate(context: vscode.ExtensionContext) {
         return
       }
 
-      // we only use the last content change, because often that seems to be the relevant one:
-      // e.contentChanges.forEach((change) =>
-      //   addEdit(change.text, change.range, change.rangeLength, e.document),
-      // )
-      const lastContentChange = e.contentChanges[e.contentChanges.length - 1]
-      addEdit(lastContentChange.text, lastContentChange.range, e.document)
+      // iterate over all changes, nessisary to keep old edits line numbers up to date
+      e.contentChanges.forEach((change) => addEdit(change.text, change.range, e.document))
+      // const lastContentChange = e.contentChanges[e.contentChanges.length - 1]
+      // addEdit(lastContentChange.text, lastContentChange.range, e.document)
     },
   )
 
@@ -89,8 +87,6 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   const addEdit = (textChange: string, range: vscode.Range, document: vscode.TextDocument) => {
-    // TODO if deleting code, remove edits that were "inside" of them
-
     const filepath = document.uri.path
 
     if (
@@ -105,11 +101,11 @@ export function activate(context: vscode.ExtensionContext) {
       return
     }
 
-    const line = range.start.line
-    const lineText = document.lineAt(line).text.trim()
     const lastEdit = editList[editList.length - 1] as Edit | undefined
     // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines. But that is currently bugged.
     const changeIsNewline = textChange.startsWith('\n') || textChange.startsWith('\r\n')
+    const line = range.start.line + (changeIsNewline ? 1 : 0)
+    const lineText = document.lineAt(line).text.trim()
 
     if (/^[a-zA-Z1-9-]*$/.test(filepath)) {
       if (getConfig().logDebug) {
@@ -145,7 +141,7 @@ export function activate(context: vscode.ExtensionContext) {
     const removedLines = range.end.line - range.start.line
 
     const newEdit = {
-      line: line + (changeIsNewline ? 1 : 0),
+      line,
       character,
       filepath,
       filename,
@@ -168,6 +164,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     // adjust old edits if we remove lines:
     if (removedLines > 0) {
+      // remove edits that where inside deleted range
+      editList = editList.filter(
+        (edit) => !(edit.line >= range.start.line && edit.line < range.end.line),
+      )
+      // adjust line numbers old edits
       editList = editList.map((edit) => {
         if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
           return {
