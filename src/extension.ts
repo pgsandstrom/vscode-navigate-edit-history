@@ -69,14 +69,13 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       // we only use the last content change, because often that seems to be the relevant one:
+      // e.contentChanges.forEach((change) =>
+      //   addEdit(change.text, change.range, change.rangeLength, e.document),
+      // )
       const lastContentChange = e.contentChanges[e.contentChanges.length - 1]
-      addEdit(lastContentChange.text, lastContentChange.range, e.document.uri.path)
+      addEdit(lastContentChange.text, lastContentChange.range, e.document)
     },
   )
-
-  // const stateChangeListener = vscode.window.onDidChangeWindowState((e) => {
-  //   if (currentStepsBack > 0) moveEditTopStackByIndex(currentStepsBack)
-  // })
 
   const moveEditTopStackByIndex = (index: number): void => {
     if (index < 0 || index >= editList.length) return
@@ -89,8 +88,10 @@ export function activate(context: vscode.ExtensionContext) {
     moveEditTopStackByIndex(editList.indexOf(edit))
   }
 
-  const addEdit = (text: string, range: vscode.Range, filepath: string) => {
+  const addEdit = (textChange: string, range: vscode.Range, document: vscode.TextDocument) => {
     // TODO if deleting code, remove edits that were "inside" of them
+
+    const filepath = document.uri.path
 
     if (
       vscode.window.activeTextEditor !== undefined &&
@@ -105,10 +106,10 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const line = range.start.line
-    const lineText = text.trim()
+    const lineText = document.lineAt(line).text.trim()
     const lastEdit = editList[editList.length - 1] as Edit | undefined
     // Someday maybe we can use "change.range.end" correctly instead of this to determine newlines. But that is currently bugged.
-    const changeIsNewline = text.startsWith('\n') || text.startsWith('\r\n')
+    const changeIsNewline = textChange.startsWith('\n') || textChange.startsWith('\r\n')
 
     if (
       lastEdit !== undefined &&
@@ -152,7 +153,7 @@ export function activate(context: vscode.ExtensionContext) {
         ? filepath.replace(currentWorkspaceFolder.uri.path, '')
         : filepath
 
-    const numberOfNewLines = text.match(/\n/g)?.length ?? 0
+    const numberOfNewLines = textChange.match(/\n/g)?.length ?? 0
     const removedLines = range.end.line - range.start.line
 
     const newEdit = {
@@ -352,17 +353,17 @@ export function activate(context: vscode.ExtensionContext) {
       if (getConfig().topStackWhenQuickPickSelect) moveEditTopStack(itemT.edit)
     })
   }
-  const predicate = (e: Edit, line: number, filepath: string): boolean => {
+  const isEqualEdit = (e: Edit, line: number, filepath: string): boolean => {
     // if line number and file path are equal
     // reg exp is used to ignore case, important for avoiding duplicates
     return e.line === line && new RegExp(e.filepath, 'i').test(filepath)
   }
   const containsEdit = (line: number, filepath: string): boolean => {
-    return editList.some((e) => predicate(e, line, filepath))
+    return editList.some((e) => isEqualEdit(e, line, filepath))
   }
   // filter remove all including duplicates
   const pruneEditList = (line: number, filepath: string): void => {
-    editList = editList.filter((e) => !predicate(e, line, filepath))
+    editList = editList.filter((e) => !isEqualEdit(e, line, filepath))
   }
   const saveEdits = (): void => {
     context.workspaceState.update('editList', editList)
@@ -384,7 +385,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     switch (command) {
       case 'create':
-        addEdit(lineText, new vscode.Range(position, position), filepath)
+        addEdit(lineText, new vscode.Range(position, position), editor.document)
         break
       case 'remove':
         pruneEditList(position.line, filepath)
