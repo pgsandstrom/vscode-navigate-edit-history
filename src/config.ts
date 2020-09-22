@@ -5,6 +5,8 @@ interface Config {
   centerOnReveal: boolean
   groupEditsWithinLines: number
   logDebug: boolean
+  topStackWhenQuickPickSelect: boolean
+  topStackWhenMove: boolean
 }
 
 let currentConfig: Config | undefined
@@ -23,6 +25,8 @@ export const reloadConfig = () => {
     centerOnReveal: config.get<boolean>('centerOnReveal') === true,
     groupEditsWithinLines: config.get<number>('groupEditsWithinLines') as number,
     logDebug: config.get<boolean>('logDebug') === true,
+    topStackWhenQuickPickSelect: config.get<boolean>('topStackWhenQuickPickSelect') === true,
+    topStackWhenMove: config.get<boolean>('topStackWhenMove') === true,
   }
 
   if (currentConfig !== undefined && currentConfig.logDebug !== newConfig.logDebug) {

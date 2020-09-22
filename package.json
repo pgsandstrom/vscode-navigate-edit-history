@@ -4,6 +4,7 @@
   "description": "Navigate backwards in your edit history",
   "version": "1.1.0",
   "publisher": "codeandstuff",
+  "icon": "logo/icon.png",
   "engines": {
     "vscode": "^1.41.0"
   },
@@ -42,17 +43,51 @@
           "type": "boolean",
           "default": false,
           "description": "Log a bunch of stuff to the console. Use if submitting a bug report."
+        },
+        "navigateEditHistory.topStackWhenQuickPickSelect": {
+          "type": "boolean",
+          "default": false,
+          "description": "Move edit to top of stack on quick pick select."
+        },
+        "navigateEditHistory.topStackWhenMove": {
+          "type": "boolean",
+          "default": false,
+          "description": "Move edit to top of stack on cursor position change"
         }
       }
     },
     "commands": [
       {
         "command": "navigateEditHistory.moveCursorToPreviousEdit",
-        "title": "Navigate back in edit history"
+        "title": "Edits: Navigate back in edit history"
       },
       {
         "command": "navigateEditHistory.moveCursorToPreviousEditInCurrentFile",
-        "title": "Navigate back in edit history in the current file"
+        "title": "Edits: Navigate back in edit history in the current file"
+      },
+      {
+        "command": "navigateEditHistory.list",
+        "title": "Edits: List edit history in all files"
+      },
+      {
+        "command": "navigateEditHistory.createEditAtCursor",
+        "title": "Edits: Create edit at cursor position (Moves edit to top of stack)"
+      },
+      {
+        "command": "navigateEditHistory.removeEditAtCursor",
+        "title": "Edits: Remove any edits on the current line"
+      },
+      {
+        "command": "navigateEditHistory.toggleEditAtCursor",
+        "title": "Edits: Toggle any edits on the current line"
+      },
+      {
+        "command": "navigateEditHistory.moveCursorCancelNavigation",
+        "title": "Edtis: Cancel navigate back in edit history and return to starting position"
+      },
+      {
+        "command": "navigateEditHistory.clearEdits",
+        "title": "Edits: Clear All Edits"
       }
     ],
     "keybindings": [
