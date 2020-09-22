@@ -42,8 +42,9 @@ export function activate(context: vscode.ExtensionContext) {
             )
           }
 
-          if (getConfig().topStackWhenMove)
+          if (getConfig().topStackWhenMove) {
             moveEditTopStackByIndex(editList.length - currentStepsBack)
+          }
 
           currentStepsBack = 0
         }
@@ -74,7 +75,9 @@ export function activate(context: vscode.ExtensionContext) {
   )
 
   const moveEditTopStackByIndex = (index: number): void => {
-    if (index < 0 || index >= editList.length) return
+    if (index < 0 || index >= editList.length) {
+      return
+    }
     const edit = editList[index]
     editList.splice(index, 1)
     editList.push(edit)
@@ -308,7 +311,9 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // If not in file add file path to detail
-        if (edit.filepath !== currentFilePath) pick.detail = edit.filename
+        if (edit.filepath !== currentFilePath) {
+          pick.detail = edit.filename
+        }
 
         return pick
       })
@@ -338,7 +343,9 @@ export function activate(context: vscode.ExtensionContext) {
       const itemT = selection
       moveCursorToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter)
 
-      if (getConfig().topStackWhenQuickPickSelect) moveEditTopStack(itemT.edit)
+      if (getConfig().topStackWhenQuickPickSelect) {
+        moveEditTopStack(itemT.edit)
+      }
     })
   }
   const isEqualEdit = (e: Edit, line: number, filepath: string): boolean => {
@@ -365,7 +372,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   const runCommand = (command: Command) => {
     const editor = vscode.window.activeTextEditor
-    if (!editor) return
+    if (!editor) {
+      return
+    }
 
     const position = editor.selection.active
     const lineText = editor.document.lineAt(position.line).text

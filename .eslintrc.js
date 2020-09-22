@@ -32,6 +32,7 @@ module.exports = {
 
     // activate extra rules:
     eqeqeq: ['error', 'smart'],
+    curly: ['error'],
     '@typescript-eslint/no-unnecessary-type-assertion': ['error'],
     '@typescript-eslint/no-extra-non-null-assertion': ['error'],
     '@typescript-eslint/no-unused-vars': [
