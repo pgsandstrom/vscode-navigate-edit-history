@@ -15,7 +15,6 @@ export function activate(context: vscode.ExtensionContext) {
   let currentStepsBack = 0
   let lastMoveToEditTime = 0
 
-  //
   const fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, false)
   const onDeleteListener = fileSystemWatcher.onDidDelete((uri: vscode.Uri) => {
     editList = editList.filter((edit) => {
@@ -69,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
         return
       }
 
-      // iterate over all changes, nessisary to keep old edits line numbers up to date
+      // iterate over all changes, necessary to keep old edits line numbers up to date
       e.contentChanges.forEach((change) => addEdit(change.text, change.range, e.document))
     },
   )
@@ -169,7 +168,7 @@ export function activate(context: vscode.ExtensionContext) {
       editList = editList.filter(
         (edit) => !(edit.line >= range.start.line && edit.line < range.end.line),
       )
-      // adjust line numbers old edits
+      // adjust line numbers of old edits
       editList = editList.map((edit) => {
         if (edit.filepath === newEdit.filepath && edit.line >= newEdit.line) {
           return {
@@ -194,7 +193,7 @@ export function activate(context: vscode.ExtensionContext) {
       editList.splice(0, 1)
     }
 
-    // save workspace settings, persiste if workspace closes
+    // save workspace settings, persists when workspace closes
     saveEdits()
   }
 
@@ -260,7 +259,7 @@ export function activate(context: vscode.ExtensionContext) {
         preserveFocus: true,
         preview: true,
       })
-      // if moving to a new file center, minimizes jurking of cursor
+      // if moving to a new file center, minimizes jerking of cursor
       revealType = vscode.TextEditorRevealType.InCenter
     } else {
       activeEditor = vscode.window.activeTextEditor!
@@ -282,7 +281,7 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.TextEditorRevealType.InCenterIfOutsideViewport,
     )
   }
-  // resets cursor to begining of navigation before jumps where made
+  // resets cursor to beginning of navigation before jumps where made
   const moveCursorCancelNavigation = async () => {
     if (currentStepsBack > 0) {
       await moveCursorToTopEdit()
@@ -291,7 +290,7 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   const openQuickPickEdits = () => {
-    // Add extre edit payload for quickpicker
+    // Add extra edit payload for quickpicker
     type QuickPickEdit = vscode.QuickPickItem & { edit: Edit }
 
     const editor = vscode.window.activeTextEditor
@@ -331,7 +330,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.window.showQuickPick(items, options).then((selection) => {
       if (typeof selection === 'undefined') {
-        // Quick pick canceled, go back to last location
+        // Quick pick cancelled, go back to last location
         moveCursorToLine(
           currentFilePath,
           currentLine,
@@ -450,5 +449,5 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate(context: vscode.ExtensionContext) {
-  //  noting to do here, YET
+  //  nothing to do here, YET
 }
