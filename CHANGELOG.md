@@ -4,6 +4,11 @@ All notable changes to the "vscode-navigate-edit-history" extension will be docu
 
 ## [Unreleased]
 
+## 1.2.0
+
+- Add quick pick list of edits
+- Add several new commands
+
 ## 1.1.0
 
 - Add command to only go to edits in the current file
