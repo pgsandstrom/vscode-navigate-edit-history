@@ -130,7 +130,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@types/glob": "7.1.1",
+    "@types/glob": "7.1.3",
     "@types/mocha": "5.2.7",
     "@types/node": "13.9.3",
     "@types/vscode": "1.41.0",
@@ -140,14 +140,14 @@
     "eslint": "6.8.0",
     "eslint-config-prettier": "6.10.1",
     "glob": "7.1.6",
-    "husky": "4.2.3",
-    "lint-staged": "10.0.9",
+    "husky": "4.3.0",
+    "lint-staged": "10.4.0",
     "mocha": "6.2.2",
-    "prettier": "2.0.2",
-    "tslint": "6.1.0",
+    "prettier": "2.1.2",
+    "tslint": "6.1.3",
     "tslint-config-prettier": "1.18.0",
-    "typescript": "3.8.3",
-    "vsce": "1.74.0",
-    "vscode-test": "1.3.0"
+    "typescript": "4.0.3",
+    "vsce": "1.79.5",
+    "vscode-test": "1.4.0"
   }
 }
