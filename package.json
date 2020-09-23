@@ -110,7 +110,8 @@
     "lint:ts": "tslint --fix src/**/*.ts{,x}",
     "package": "vsce package",
     "pre-commit": "lint-staged",
-    "pre-push": "tsc --noEmit"
+    "pre-push": "npm run typecheck",
+    "typecheck": "tsc --noEmit"
   },
   "husky": {
     "hooks": {
