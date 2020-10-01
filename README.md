@@ -1,8 +1,6 @@
-# Navigate Edits History - Bookmarks with Navigation Stack Workflow
+# Edit History Bookmarks
 
-## vscode-navigate-edit-history
-
-A Visual Studio Extension for quick searching and navigating edits/marks.
+A Visual Studio Extension for quick navigation of edits/marks.
 
 ## Features
 
@@ -43,10 +41,10 @@ Yet another edit history navigator extension for VsCode. Offers a command to go 
 
 With create/toggle edit on current line command the current position is moved to the top of the bookmark/edit stack, making for quick back tracking. Config options can be set to automatically move current bookmark up to top of stack, for a stack back jumping workflow. Can also open up search pallet to view edit/mark history.
 
-This extension is very opinionated. I'm happy to take suggestions, but this extension is primarily made to support one specific workflow. You are welcome to fork and publish your own version if you like what I have made!
+This extension is very opinionated, but I'm happy to take suggestions. Just open an issue or pull request on Github!
 
 ## Known Issues
 
-- Cant save edit history in files that have never been saved to disk.
+- Cant save edit history in files that has not yet been saved to disk.
 
 [ Logo Credit ](https://icons8.com/)
