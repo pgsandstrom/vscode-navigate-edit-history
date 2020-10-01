@@ -4,6 +4,10 @@ All notable changes to the "vscode-navigate-edit-history" extension will be docu
 
 ## [Unreleased]
 
+## 1.2.2
+
+- Update readme
+
 ## 1.2.1
 
 - Change extension name
