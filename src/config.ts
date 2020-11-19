@@ -7,6 +7,7 @@ interface Config {
   logDebug: boolean
   topStackWhenQuickPickSelect: boolean
   topStackWhenMove: boolean
+  matchFilesInList: boolean
 }
 
 let currentConfig: Config | undefined
@@ -27,6 +28,7 @@ export const reloadConfig = () => {
     logDebug: config.get<boolean>('logDebug') === true,
     topStackWhenQuickPickSelect: config.get<boolean>('topStackWhenQuickPickSelect') === true,
     topStackWhenMove: config.get<boolean>('topStackWhenMove') === true,
+    matchFilesInList: config.get<boolean>('matchFilesInList') === true,
   }
 
   if (currentConfig !== undefined && currentConfig.logDebug !== newConfig.logDebug) {
