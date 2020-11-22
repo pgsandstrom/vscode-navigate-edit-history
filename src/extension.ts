@@ -321,7 +321,7 @@ export function activate(context: vscode.ExtensionContext) {
     const options: vscode.QuickPickOptions = {
       placeHolder: 'Type a line number or a piece of code to navigate to',
       matchOnDescription: true,
-      matchOnDetail: getConfig().matchFilesInList,
+      matchOnDetail: getConfig().filterOnPathInEditList,
       onDidSelectItem: (item) => {
         const itemT = item as QuickPickEdit
         moveCursorToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter)

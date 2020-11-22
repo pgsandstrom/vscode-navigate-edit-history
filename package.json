@@ -52,12 +52,12 @@
         "navigateEditHistory.topStackWhenMove": {
           "type": "boolean",
           "default": false,
-          "description": "Move edit to top of stack on cursor position change"
+          "description": "Move edit to top of stack on cursor position change."
         },
-        "navigateEditHistory.matchFilesInList": {
+        "navigateEditHistory.filterOnPathInEditList": {
           "type": "boolean",
           "default": false,
-          "description": "Search file paths in list all edits menu."
+          "description": "When filtering the edit list, also match on the file path."
         }
       }
     },

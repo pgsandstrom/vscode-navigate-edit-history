@@ -33,8 +33,8 @@ This extension contributes the following settings (Set in User Preferences):
 - `navigateEditHistory.groupEditsWithinLines`: Group edits if they are within a certain amount of lines from each other.
 - `navigateEditHistory.logDebug`: Log a bunch of stuff to the console. Use if submitting a bug report.
 - `navigateEditHistory.topStackWhenQuickPickSelect`: Move edit to top of stack on quick pick select.
-- `navigateEditHistory.topStackWhenMove`: Move edit to top of stack on cursor position change
-- `navigateEditHistory.matchFilesInList`: Search file paths in list all edits menu.
+- `navigateEditHistory.topStackWhenMove`: Move edit to top of stack on cursor position change.
+- `navigateEditHistory.filterOnPathInEditList`: When filtering the edit list, also match on the file path.
 
 ## Workflow Guide
 
