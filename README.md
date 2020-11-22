@@ -34,6 +34,7 @@ This extension contributes the following settings (Set in User Preferences):
 - `navigateEditHistory.logDebug`: Log a bunch of stuff to the console. Use if submitting a bug report.
 - `navigateEditHistory.topStackWhenQuickPickSelect`: Move edit to top of stack on quick pick select.
 - `navigateEditHistory.topStackWhenMove`: Move edit to top of stack on cursor position change
+- `navigateEditHistory.matchFilesInList`: Search file paths in list all edits menu.
 
 ## Workflow Guide
 
