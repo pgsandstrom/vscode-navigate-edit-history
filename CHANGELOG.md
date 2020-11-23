@@ -4,6 +4,10 @@ All notable changes to the "vscode-navigate-edit-history" extension will be docu
 
 ## [Unreleased]
 
+## 1.3.0
+
+- Add config to include file path when filtering the edit list
+
 ## 1.2.2
 
 - Update readme
