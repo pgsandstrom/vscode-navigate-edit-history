@@ -75,6 +75,10 @@
         "title": "Edits: Navigate back in edit history in the current file"
       },
       {
+        "command": "navigateEditHistory.moveCursorToNextEditInCurrentFile",
+        "title": "Edits: Navigate forward in edit history in the current file"
+      },
+      {
         "command": "navigateEditHistory.list",
         "title": "Edits: List edit history in all files"
       },

@@ -227,7 +227,7 @@ export function activate(context: vscode.ExtensionContext) {
     })
 
     if (edit === undefined) {
-      // prevent a failed onlyInCurrentFile search from
+      // prevent a failed onlyInCurrentFile search from altering currentStepsBack
       currentStepsBack = initialCurrentStepBack
       return
     }
@@ -242,24 +242,39 @@ export function activate(context: vscode.ExtensionContext) {
     )
   }
 
-  const moveCursorToNextEdit = () => {
+  const moveCursorToNextEdit = (onlyInCurrentFile: boolean) => {
     if (currentStepsBack === 1) {
       if (getConfig().logDebug) {
         console.log('At the start of the edit list, cant go forward any longer')
       }
       return
     }
-    currentStepsBack--
 
-    const edit = editList[editList.length - currentStepsBack] as Edit | undefined
+    const initialCurrentStepBack = currentStepsBack
 
-    if (edit === undefined) {
-      if (getConfig().logDebug) {
-        console.log('Failed to find next edit')
+    const activeFilePath = vscode.window.activeTextEditor?.document.uri.path
+
+    let edit
+    while (!edit) {
+      currentStepsBack--
+      edit = editList[editList.length - currentStepsBack] as Edit | undefined
+      if (edit === undefined) {
+        if (getConfig().logDebug) {
+          console.log('Failed to find next edit')
+        }
+        // prevent a failed onlyInCurrentFile search from altering currentStepsBack
+        currentStepsBack = initialCurrentStepBack
+        return
       }
-      return
+      if (onlyInCurrentFile && activeFilePath !== edit.filepath) {
+        console.log(`skipping due to wrong file: ${edit.filepath}`)
+        edit = undefined
+      }
     }
 
+    if (getConfig().logDebug) {
+      console.log(`moving selection to line ${edit.line} in ${edit.filepath}`)
+    }
     moveCursorToEdit(
       edit,
       getConfig().centerOnReveal
@@ -433,11 +448,15 @@ export function activate(context: vscode.ExtensionContext) {
   )
   const gotoNextEditCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorToNextEdit',
-    () => moveCursorToNextEdit(),
+    () => moveCursorToNextEdit(false),
   )
   const gotoPreviousEditInCurrentFileCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorToPreviousEditInCurrentFile',
     () => moveCursorToPreviousEdit(true),
+  )
+  const gotoNextEditInCurrentFileCommand = vscode.commands.registerCommand(
+    'navigateEditHistory.moveCursorToNextEditInCurrentFile',
+    () => moveCursorToNextEdit(true),
   )
   const goToTopStackCommand = vscode.commands.registerCommand(
     'navigateEditHistory.moveCursorCancelNavigation',
@@ -466,6 +485,7 @@ export function activate(context: vscode.ExtensionContext) {
     gotoPreviousEditCommand,
     gotoNextEditCommand,
     gotoPreviousEditInCurrentFileCommand,
+    gotoNextEditInCurrentFileCommand,
     listEditsCommand,
     createEditAtCursorCommand,
     removeEditAtCursorCommand,

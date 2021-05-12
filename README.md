@@ -19,6 +19,8 @@ This extension contributes the following commands (Set in Keyboard Preferences):
 
 - `navigateEditHistory.moveCursorToPreviousEdit`: Edits: Navigate back in edit history
 - `navigateEditHistory.moveCursorToPreviousEditInCurrentFile`: Edits: Navigate back in edit history in the current file
+- `navigateEditHistory.moveCursorToNextEdit`: Edits: Navigate forward in edit history
+- `navigateEditHistory.moveCursorToNextEditInCurrentFile`: Edits: Navigate forward in edit history in the current file
 - `navigateEditHistory.list`: Edits: List edit history in all files
 - `navigateEditHistory.createEditAtCursor`: Edits: Create edit at cursor position (Moves edit to top of stack)
 - `navigateEditHistory.removeEditAtCursor`: Edits: Remove any edits on the current line
