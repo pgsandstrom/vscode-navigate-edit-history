@@ -2,7 +2,9 @@
 
 All notable changes to the "vscode-navigate-edit-history" extension will be documented in this file.
 
-## [Unreleased]
+## 1.5.1
+
+- Cleanup
 
 ## 1.5.0
 
