@@ -11,6 +11,13 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "navigate",
+    "edit",
+    "history",
+    "jump",
+    "back"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/pgsandstrom/vscode-navigate-edit-history.git"
