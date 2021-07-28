@@ -4,6 +4,7 @@
   "description": "Navigate your edit history with ease. Jump one step back with a keypress or view a list of all recent edits.",
   "version": "1.5.1",
   "publisher": "codeandstuff",
+  "license": "MIT",
   "icon": "logo/icon.png",
   "engines": {
     "vscode": "^1.41.0"
