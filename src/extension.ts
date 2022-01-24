@@ -114,7 +114,6 @@ export function activate(context: vscode.ExtensionContext) {
     const changeIsNewline = textChange.startsWith('\n') || textChange.startsWith('\r\n')
     const line = range.start.line + (changeIsNewline ? 1 : 0)
     const lineText = document.lineAt(line).text.trim()
-    const character = range.start.character
 
     const currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filepath))
     // remove workspace path from filepath
@@ -125,6 +124,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     const numberOfNewLines = textChange.match(/\n/g)?.length ?? 0
     const removedLines = range.end.line - range.start.line
+
+    // When we delete, we want to return to the start of the deletion
+    // When we add, we want to return to the end of the addition
+    const isDeletion =
+      removedLines > 0 || range.end.character - range.start.character > textChange.length
+    const character = isDeletion ? range.start.character : range.end.character + textChange.length
 
     const lastEdit = editList[editList.length - 1] as Edit | undefined
     const newEdit = {
