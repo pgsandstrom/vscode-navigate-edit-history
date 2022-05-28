@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { getConfig, reloadConfig } from './config'
-import { showMarker } from './markerStyle'
+import { reloadStyleConfig, triggerDecorations } from './markerStyle'
 
 interface Edit {
   line: number
@@ -55,6 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
   const onConfigChangeListener = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('navigateEditHistory')) {
       reloadConfig()
+      reloadStyleConfig()
       console.log(editList)
       //showMarker(editList)
     }
@@ -201,8 +202,9 @@ export function activate(context: vscode.ExtensionContext) {
       editList.splice(0, 1)
     }
     // can add the bookmark
-    console.log(editList)
-    showMarker(context, editList)
+    // console.log(editList)
+    // document.uri.path editor.document
+    triggerDecorations(context, document, editList)
     // save workspace settings, persists when workspace closes
     saveEdits()
   }
