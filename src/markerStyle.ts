@@ -16,12 +16,11 @@ interface Edit {
 }
 
 let globalConfig: Config = {}
-let activeDoc: vscode.TextDocument | undefined = undefined
 let context: vscode.ExtensionContext
 let editList: Edit[]
 
 export const reloadStyleConfig = () => {
-  //console.log('reloadConfig')
+  //console.log('reloadStyleConfig')
   const config = vscode.workspace.getConfiguration('navigateEditHistory')
   const newConfig: Config = {
     markerStyle: config.get<string>('markerStyle'),
@@ -34,7 +33,7 @@ export const reloadStyleConfig = () => {
   //console.log('globalConfig:'+ JSON.stringify(globalConfig) );
 }
 function generateJSON(conf: Config): MyDecorationRenderOptions {
-  // 默认在右侧缩略图中显示
+  //  show in overview 默认在右侧缩略图中显示
   let objDecoration: MyDecorationRenderOptions = {
     overviewRulerColor: '#AA000099', // RGBA
     overviewRulerLane: 2, // Center: 2 Full: 7 Left: 1 Right: 4
@@ -68,8 +67,13 @@ function generateJSON(conf: Config): MyDecorationRenderOptions {
       backgroundColor: conf.markerColor,
     },
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    SVG: {
-      gutterIconPathExt: './img/add.svg', // defined myself for relative path
+    'SVG rectangle': {
+      gutterIconPathExt: './img/rectangle.svg', // defined myself for relative path
+      gutterIconSize: 'auto',
+    },
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'SVG triangle': {
+      gutterIconPathExt: './img/triangle.svg', // defined myself for relative path
       gutterIconSize: 'auto',
     },
     custom: <object>conf.markerJSONCustom,
@@ -126,24 +130,20 @@ function showMarker(ct: vscode.ExtensionContext, path: string, editArr: Edit[]) 
 let timeout: NodeJS.Timer | undefined = undefined
 
 function updateDecorations() {
-  if (!activeDoc) {
+  const editor = vscode.window.activeTextEditor
+  if (!editor) {
     return
   }
   // use global var
-  showMarker(context, activeDoc.uri.path, editList)
+  showMarker(context, editor.document.uri.path, editList)
 }
-export function triggerDecorations(
-  ct: vscode.ExtensionContext,
-  doc: vscode.TextDocument,
-  el: Edit[],
-) {
+export function triggerDecorations(ct: vscode.ExtensionContext, el: Edit[]) {
   context = ct
-  activeDoc = doc
   editList = el
   //console.log('triggerUpdateDecorations')
   if (timeout) {
     clearTimeout(timeout)
     timeout = undefined
   }
-  timeout = setTimeout(updateDecorations, 50)
+  timeout = setTimeout(updateDecorations, 10)
 }

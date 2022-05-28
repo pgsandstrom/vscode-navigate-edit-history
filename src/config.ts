@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-
+import { reloadStyleConfig } from './markerStyle'
 interface Config {
   maxHistorySize: number
   centerOnReveal: boolean
@@ -40,4 +40,5 @@ export const reloadConfig = () => {
   }
 
   currentConfig = newConfig
+  reloadStyleConfig()
 }

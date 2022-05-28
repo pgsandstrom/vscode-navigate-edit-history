@@ -66,6 +66,52 @@
           "type": "boolean",
           "default": false,
           "description": "When filtering the edit list, also match on the file path."
+        },
+        "navigateEditHistory.markerStyle": {
+          "type": "string",
+          "default": "leftRect",
+          "enum": [
+            "leftRect",
+            "leftDash",
+            "leftDot",
+            "bottomDot",
+            "background",
+            "SVG rectangle",
+            "SVG triangle",
+            "custom"
+          ],
+          "markdownEnumDescriptions": [
+            "The Line on the left",
+            "The dash on the left",
+            "The dot on the left",
+            "The dot on the bottom",
+            "Set background color",
+            "SVG rectangle on the left, the key gutterIconPathExt support relative/absolute",
+            "SVG triangle on the left, the key gutterIconPathExt support relative/absolute",
+            "Set your own style by marker JSONCustom"
+          ],
+          "markdownDescription": "Marker Style, you can define JSON `#navigateEditHistory.markerJSONCustom#` by yourself, SVG maybe has conflict with breakpoint [Issue](https://github.com/Microsoft/vscode/issues/5923) "
+        },
+        "navigateEditHistory.markerColor": {
+          "type": "string",
+          "default": "#FF00FF99",
+          "markdownDescription": "Such as #FF00FF99, not worked in SVG, you can define JSON `#navigateEditHistory.markerJSONCustom#` by yourself, see the [theme-color](https://code.visualstudio.com/api/references/theme-color)"
+        },
+        "navigateEditHistory.markerJSON": {
+          "type": "object",
+          "default": {},
+          "readOnly": true,
+          "markdownDescription": "Current marker style's JSON, it is readonly and for custom reference, custom key(gutterIconPathExt) support relative/absolute SVG path"
+        },
+        "navigateEditHistory.markerJSONCustom": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "The custom marker style's JSON, see the `#navigateEditHistory.markerJSON#` and [DecorationRenderOptions](https://code.visualstudio.com/api/references/vscode-api#DecorationRenderOptions)"
+        },
+        "navigateEditHistory.markerWholeLine": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Whethe marker the whole line, you can define JSON `#navigateEditHistory.markerJSON#` by yourself."
         }
       }
     },

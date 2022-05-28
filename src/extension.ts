@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { getConfig, reloadConfig } from './config'
-import { reloadStyleConfig, triggerDecorations } from './markerStyle'
+import { triggerDecorations, reloadStyleConfig } from './markerStyle'
 
 interface Edit {
   line: number
@@ -55,9 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
   const onConfigChangeListener = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('navigateEditHistory')) {
       reloadConfig()
-      reloadStyleConfig()
-      console.log(editList)
-      //showMarker(editList)
+      triggerDecorations(context, editList)
     }
   })
 
@@ -201,12 +199,10 @@ export function activate(context: vscode.ExtensionContext) {
     if (editList.length > getConfig().maxHistorySize) {
       editList.splice(0, 1)
     }
-    // can add the bookmark
-    // console.log(editList)
-    // document.uri.path editor.document
-    triggerDecorations(context, document, editList)
     // save workspace settings, persists when workspace closes
     saveEdits()
+    // can add the bookmark
+    triggerDecorations(context, editList)
   }
 
   const moveCursorToPreviousEdit = (onlyInCurrentFile: boolean) => {
@@ -493,6 +489,19 @@ export function activate(context: vscode.ExtensionContext) {
     runCommand('clear'),
   )
 
+  const onActiveTextEditorListener = vscode.window.onDidChangeActiveTextEditor(
+    (editor) => {
+      if (editor) {
+        //console.log('onDidChangeActiveTextEditor')
+        triggerDecorations(context, editList)
+      }
+    },
+    null,
+    context.subscriptions,
+  )
+  reloadStyleConfig()
+  triggerDecorations(context, editList)
+
   context.subscriptions.push(
     gotoPreviousEditCommand,
     gotoNextEditCommand,
@@ -508,6 +517,7 @@ export function activate(context: vscode.ExtensionContext) {
     selectionDidChangeListener,
     documentChangeListener,
     onConfigChangeListener,
+    onActiveTextEditorListener,
   )
 }
 
