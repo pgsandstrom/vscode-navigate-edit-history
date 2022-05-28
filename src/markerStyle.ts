@@ -97,6 +97,9 @@ function showMarker(ct: vscode.ExtensionContext, path: string, editArr: Edit[]) 
   if (globalConfig.markerJSON === undefined) {
     return
   }
+  if (globalConfig.markerStyle === 'none') {
+    return
+  }
   // copy a new  Decoration
   const objDecoration: vscode.DecorationRenderOptions = { ...globalConfig.markerJSON } //isWholeLine: true
   //console.log( ' --- globalConfig:'+JSON.stringify(globalConfig.markerJSON) )

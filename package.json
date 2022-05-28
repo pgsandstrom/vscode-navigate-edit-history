@@ -71,6 +71,7 @@
           "type": "string",
           "default": "leftRect",
           "enum": [
+            "none",
             "leftRect",
             "leftDash",
             "leftDot",
@@ -81,6 +82,7 @@
             "custom"
           ],
           "markdownEnumDescriptions": [
+            "Not use marker style",
             "The Line on the left",
             "The dash on the left",
             "The dot on the left",
@@ -111,7 +113,7 @@
         "navigateEditHistory.markerWholeLine": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Whethe marker the whole line, you can define JSON `#navigateEditHistory.markerJSON#` by yourself."
+          "markdownDescription": "Whethe marker the whole line, you can define JSON `#navigateEditHistory.markerJSONCustom#` by yourself."
         }
       }
     },
