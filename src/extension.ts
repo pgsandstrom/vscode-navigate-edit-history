@@ -448,6 +448,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     currentStepsBack = 0
     saveEdits()
+    triggerDecorations(context, editList)
   }
 
   const gotoPreviousEditCommand = vscode.commands.registerCommand(

@@ -18,6 +18,7 @@ interface Edit {
 let globalConfig: Config = {}
 let context: vscode.ExtensionContext
 let editList: Edit[]
+let myDecoration: vscode.TextEditorDecorationType | undefined = undefined
 
 export const reloadStyleConfig = () => {
   //console.log('reloadStyleConfig')
@@ -30,6 +31,7 @@ export const reloadStyleConfig = () => {
   }
   newConfig.markerJSON = generateJSON(newConfig)
   globalConfig = newConfig
+  myDecoration = undefined // need init myDecoration
   //console.log('globalConfig:'+ JSON.stringify(globalConfig) );
 }
 function generateJSON(conf: Config): MyDecorationRenderOptions {
@@ -101,21 +103,23 @@ function showMarker(ct: vscode.ExtensionContext, path: string, editArr: Edit[]) 
     return
   }
   // copy a new  Decoration
-  const objDecoration: vscode.DecorationRenderOptions = { ...globalConfig.markerJSON } //isWholeLine: true
-  //console.log( ' --- globalConfig:'+JSON.stringify(globalConfig.markerJSON) )
-  const svgPath = globalConfig.markerJSON.gutterIconPathExt || ''
-  if (svgPath === '') {
-    delete objDecoration.gutterIconPath
-  } else {
-    if (svgPath.indexOf('./') === 0) {
-      // relative path
-      objDecoration.gutterIconPath = ct.asAbsolutePath(svgPath)
+  if (!myDecoration) {
+    const objDecoration: vscode.DecorationRenderOptions = { ...globalConfig.markerJSON } //isWholeLine: true
+    //console.log( ' --- globalConfig:'+JSON.stringify(globalConfig.markerJSON) )
+    const svgPath = globalConfig.markerJSON.gutterIconPathExt || ''
+    if (svgPath === '') {
+      delete objDecoration.gutterIconPath
     } else {
-      objDecoration.gutterIconPath = svgPath
+      if (svgPath.indexOf('./') === 0) {
+        // relative path
+        objDecoration.gutterIconPath = ct.asAbsolutePath(svgPath)
+      } else {
+        objDecoration.gutterIconPath = svgPath
+      }
     }
+    //console.log( ' --- globalConfig:'+JSON.stringify(globalConfig.markerJSON) )
+    myDecoration = win.createTextEditorDecorationType(objDecoration)
   }
-  //console.log( ' --- globalConfig:'+JSON.stringify(globalConfig.markerJSON) )
-  const myDecoration = win.createTextEditorDecorationType(objDecoration)
   //console.log('objDecoration:' + JSON.stringify(objDecoration) );
   if (win.activeTextEditor === undefined) {
     win.showInformationMessage('Error , No editor!!!')
