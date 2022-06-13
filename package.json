@@ -180,7 +180,7 @@
     "lint": "node ./node_modules/eslint/bin/eslint.js --ext .ts --ext .tsx --fix src",
     "package": "vsce package",
     "pre-commit": "lint-staged",
-    "pre-push": "npm run lint && npm run typecheck",
+    "pre-push": "npm run lint && npm run typecheck && npm run test",
     "prepare": "husky install",
     "typecheck": "tsc --noEmit"
   },

@@ -32,13 +32,12 @@ export const reloadStyleConfig = () => {
   newConfig.markerJSON = generateJSON(newConfig)
   globalConfig = newConfig
   myDecoration = undefined // need init myDecoration
-  //console.log('globalConfig:'+ JSON.stringify(globalConfig) );
 }
 function generateJSON(conf: Config): MyDecorationRenderOptions {
-  //  show in overview 默认在右侧缩略图中显示
+  //  show in overview ( right scroller )
   let objDecoration: MyDecorationRenderOptions = {
     overviewRulerColor: '#AA000099', // RGBA
-    overviewRulerLane: 2, // Center: 2 Full: 7 Left: 1 Right: 4
+    overviewRulerLane: 2, // Center: 2 Full: 7 Left: 1 Right: 4 https://code.visualstudio.com/api/references/vscode-api#OverviewRulerLane
   } //isWholeLine: true
   objDecoration = Object.assign(objDecoration, { isWholeLine: conf.markerWholeLine })
   const config = vscode.workspace.getConfiguration('navigateEditHistory')
@@ -84,8 +83,8 @@ function generateJSON(conf: Config): MyDecorationRenderOptions {
   if (style === undefined) {
     style = 'leftRect'
   }
-  const newDecroa = decoraList[style]
-  Object.assign(objDecoration, newDecroa)
+  const newDecora = decoraList[style]
+  Object.assign(objDecoration, newDecora)
   config.update('markerJSON', objDecoration, true) // https://code.visualstudio.com/api/references/vscode-api#WorkspaceConfiguration
   return objDecoration
 }
