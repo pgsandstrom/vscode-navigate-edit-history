@@ -293,6 +293,7 @@ export function activate(context: vscode.ExtensionContext) {
     line: number,
     character: number,
     revealType: vscode.TextEditorRevealType,
+    showOptions: vscode.TextDocumentShowOptions = {},
   ) => {
     lastMoveToEditTime = new Date().getTime()
 
@@ -302,8 +303,8 @@ export function activate(context: vscode.ExtensionContext) {
     if (activeFilepath !== filepath) {
       const textdocument = await vscode.workspace.openTextDocument(filepath)
       activeEditor = await vscode.window.showTextDocument(textdocument, {
-        preserveFocus: true,
         preview: true,
+        ...showOptions,
       })
       // if moving to a new file center, minimizes jerking of cursor
       revealType = vscode.TextEditorRevealType.InCenter
@@ -315,8 +316,12 @@ export function activate(context: vscode.ExtensionContext) {
     const rangeToReveal = new vscode.Range(line, character, line, character)
     activeEditor.revealRange(rangeToReveal, revealType)
   }
-  const moveCursorToEdit = async (edit: Edit, revealType: vscode.TextEditorRevealType) => {
-    await moveCursorToLine(edit.filepath, edit.line, edit.character, revealType)
+  const moveCursorToEdit = async (
+    edit: Edit,
+    revealType: vscode.TextEditorRevealType,
+    showOptions: vscode.TextDocumentShowOptions = {},
+  ) => {
+    await moveCursorToLine(edit.filepath, edit.line, edit.character, revealType, showOptions)
   }
   const moveCursorToTopEdit = async () => {
     const edit = editList[editList.length - 1]
@@ -370,7 +375,7 @@ export function activate(context: vscode.ExtensionContext) {
       matchOnDetail: getConfig().filterOnPathInEditList,
       onDidSelectItem: (item) => {
         const itemT = item as QuickPickEdit
-        moveCursorToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter)
+        moveCursorToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter, { preserveFocus: true })
       },
     }
 
