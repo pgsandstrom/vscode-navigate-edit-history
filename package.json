@@ -2,7 +2,7 @@
   "name": "vscode-navigate-edit-history",
   "displayName": "Edit History Bookmarks",
   "description": "Navigate your edit history with ease. Jump one step back with a keypress or view a list of all recent edits.",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "publisher": "codeandstuff",
   "license": "MIT",
   "icon": "logo/icon.png",

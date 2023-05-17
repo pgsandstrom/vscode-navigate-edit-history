@@ -2,6 +2,10 @@
 
 All notable changes to the "vscode-navigate-edit-history" extension will be documented in this file.
 
+## 1.6.1
+
+- Fix editor losing focus on newer version of vscode
+
 ## 1.6.0
 
 - Fix so cursor is not always placed at beginning of edit
