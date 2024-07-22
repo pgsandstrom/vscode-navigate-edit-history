@@ -33,8 +33,10 @@ export const reloadConfig = () => {
 
   if (currentConfig !== undefined && currentConfig.logDebug !== newConfig.logDebug) {
     if (newConfig.logDebug === true) {
+      // eslint-disable-next-line no-console
       console.log('Enabling logging')
     } else {
+      // eslint-disable-next-line no-console
       console.log('Disabling logging')
     }
   }

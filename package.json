@@ -129,7 +129,7 @@
     "pretest": "npm run compile",
     "test": "node ./out/test/runTest.js",
     "format": "prettier --write \"src/**/*.{json,md,ts,tsx,css,scss}\"",
-    "lint": "eslint --ext .ts --ext .tsx --fix src",
+    "lint": "eslint --max-warnings 0 \"src/**/*.{ts,tsx,js}\"",
     "package": "vsce package",
     "pre-commit": "lint-staged",
     "pre-push": "npm run lint && npm run typecheck && npm run test",
@@ -141,22 +141,24 @@
       "prettier --write"
     ],
     "*.{ts,tsx}": [
-      "node ./node_modules/eslint/bin/eslint.js --fix",
+      "eslint --fix --max-warnings 0",
       "prettier --write"
     ]
   },
   "devDependencies": {
+    "@eslint/compat": "1.1.1",
+    "@eslint/js": "9.7.0",
+    "@types/eslint__js": "8.42.3",
     "@types/glob": "8.1.0",
     "@types/mocha": "10.0.7",
     "@types/node": "20.14.11",
     "@types/vscode": "1.87.0",
-    "@typescript-eslint/eslint-plugin": "5.59.8",
-    "@typescript-eslint/parser": "5.59.8",
     "@vscode/vsce": "2.31.1",
     "@vscode/test-electron": "2.4.1",
     "cross-env": "7.0.3",
-    "eslint": "8.42.0",
-    "eslint-config-prettier": "8.8.0",
+    "eslint": "9.7.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-no-only-tests": "3.1.0",
     "glob": "7.2.3",
     "husky": "9.1.1",
     "lint-staged": "15.2.7",
@@ -164,6 +166,7 @@
     "prettier": "3.3.3",
     "ts-loader": "9.5.1",
     "typescript": "5.5.3",
+    "typescript-eslint": "7.16.1",
     "webpack": "5.93.0",
     "webpack-cli": "5.1.4"
   }

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import { getConfig, reloadConfig } from './config'
+import { logWrapper } from './util-log'
 
 interface Edit {
   line: number
@@ -19,9 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
   const onDeleteListener = fileSystemWatcher.onDidDelete((uri: vscode.Uri) => {
     editList = editList.filter((edit) => {
       if (edit.filepath === uri.path) {
-        if (getConfig().logDebug) {
-          console.log(`Removing edit due to file being deleted: ${uri.path}`)
-        }
+        logWrapper(`Removing edit due to file being deleted: ${uri.path}`)
         return false
       }
       return true
@@ -35,11 +34,9 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (timeSinceMoveToEdit > TIME_TO_IGNORE_NAVIGATION_AFTER_MOVE_COMMAND) {
         if (currentStepsBack > 0) {
-          if (getConfig().logDebug) {
-            console.log(
-              `Resetting step back history. Time since move to edit command: ${timeSinceMoveToEdit}`,
-            )
-          }
+          logWrapper(
+            `Resetting step back history. Time since move to edit command: ${timeSinceMoveToEdit}`,
+          )
 
           if (getConfig().topStackWhenMove) {
             moveEditTopStackByIndex(editList.length - currentStepsBack)
@@ -93,20 +90,16 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.activeTextEditor !== undefined &&
       filepath !== vscode.window.activeTextEditor.document.uri.path
     ) {
-      if (getConfig().logDebug) {
-        console.log(`Edited non-active editor, ignoring.`)
-        console.log(`Active editor: ${vscode.window.activeTextEditor.document.uri.path}`)
-        console.log(`Filepath: ${filepath}`)
-      }
+      logWrapper(`Edited non-active editor, ignoring.`)
+      logWrapper(`Active editor: ${vscode.window.activeTextEditor.document.uri.path}`)
+      logWrapper(`Filepath: ${filepath}`)
       return
     }
 
     if (/^[a-zA-Z1-9-]*$/.test(filepath)) {
-      if (getConfig().logDebug) {
-        console.log(
-          `Not adding to edit history since unsaved files are not supported. Path: ${filepath}`,
-        )
-      }
+      logWrapper(
+        `Not adding to edit history since unsaved files are not supported. Path: ${filepath}`,
+      )
       return
     }
 
@@ -144,11 +137,9 @@ export function activate(context: vscode.ExtensionContext) {
     if (lastEdit !== undefined && lastEdit.filepath === filepath) {
       const lineDiffToLastEdit = Math.abs(lastEdit.line - line)
       if (getConfig().groupEditsWithinLines >= lineDiffToLastEdit) {
-        if (getConfig().logDebug) {
-          console.log(
-            `Change was ${lineDiffToLastEdit} lines away from last edit, so removing last edit.`,
-          )
-        }
+        logWrapper(
+          `Change was ${lineDiffToLastEdit} lines away from last edit, so removing last edit.`,
+        )
         editList.splice(-1, 1)
       }
     }
@@ -189,9 +180,7 @@ export function activate(context: vscode.ExtensionContext) {
     // remove duplicate edits, remove if line number and filename are the same
     pruneEditList(newEdit.line, newEdit.filepath)
 
-    if (getConfig().logDebug) {
-      console.log(`Saving new edit at line ${newEdit.line} in ${newEdit.filepath}`)
-    }
+    logWrapper(`Saving new edit at line ${newEdit.line} in ${newEdit.filepath}`)
     editList.push(newEdit)
 
     if (editList.length > getConfig().maxHistorySize) {
@@ -204,9 +193,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const moveCursorToPreviousEdit = (onlyInCurrentFile: boolean) => {
     if (editList.length - 1 - currentStepsBack < 0) {
-      if (getConfig().logDebug) {
-        console.log('Reached the end of edit history, aborting action')
-      }
+      logWrapper('Reached the end of edit history, aborting action')
       return
     }
 
@@ -236,10 +223,8 @@ export function activate(context: vscode.ExtensionContext) {
       currentStepsBack = initialCurrentStepBack
       return
     }
-    if (getConfig().logDebug) {
-      console.log(`moving selection to line ${edit.line} in ${edit.filepath}`)
-    }
-    moveCursorToEdit(
+    logWrapper(`moving selection to line ${edit.line} in ${edit.filepath}`)
+    void moveCursorToEdit(
       edit,
       getConfig().centerOnReveal
         ? vscode.TextEditorRevealType.InCenterIfOutsideViewport
@@ -249,9 +234,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const moveCursorToNextEdit = (onlyInCurrentFile: boolean) => {
     if (currentStepsBack === 1) {
-      if (getConfig().logDebug) {
-        console.log('At the start of the edit list, cant go forward any longer')
-      }
+      logWrapper('At the start of the edit list, cant go forward any longer')
       return
     }
 
@@ -264,23 +247,19 @@ export function activate(context: vscode.ExtensionContext) {
       currentStepsBack--
       edit = editList[editList.length - currentStepsBack] as Edit | undefined
       if (edit === undefined) {
-        if (getConfig().logDebug) {
-          console.log('Failed to find next edit')
-        }
+        logWrapper('Failed to find next edit')
         // prevent a failed onlyInCurrentFile search from altering currentStepsBack
         currentStepsBack = initialCurrentStepBack
         return
       }
       if (onlyInCurrentFile && activeFilePath !== edit.filepath) {
-        console.log(`skipping due to wrong file: ${edit.filepath}`)
+        logWrapper(`skipping due to wrong file: ${edit.filepath}`)
         edit = undefined
       }
     }
 
-    if (getConfig().logDebug) {
-      console.log(`moving selection to line ${edit.line} in ${edit.filepath}`)
-    }
-    moveCursorToEdit(
+    logWrapper(`moving selection to line ${edit.line} in ${edit.filepath}`)
+    void moveCursorToEdit(
       edit,
       getConfig().centerOnReveal
         ? vscode.TextEditorRevealType.InCenterIfOutsideViewport
@@ -375,14 +354,16 @@ export function activate(context: vscode.ExtensionContext) {
       matchOnDetail: getConfig().filterOnPathInEditList,
       onDidSelectItem: (item) => {
         const itemT = item as QuickPickEdit
-        moveCursorToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter, { preserveFocus: true })
+        void moveCursorToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter, {
+          preserveFocus: true,
+        })
       },
     }
 
-    vscode.window.showQuickPick(items, options).then((selection) => {
+    void vscode.window.showQuickPick(items, options).then((selection) => {
       if (typeof selection === 'undefined') {
         // Quick pick cancelled, go back to last location
-        moveCursorToLine(
+        void moveCursorToLine(
           currentFilePath,
           currentLine,
           currentCharacter,
@@ -391,7 +372,7 @@ export function activate(context: vscode.ExtensionContext) {
         return
       }
       const itemT = selection
-      moveCursorToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter)
+      void moveCursorToEdit(itemT.edit, vscode.TextEditorRevealType.InCenter)
 
       if (getConfig().topStackWhenQuickPickSelect) {
         moveEditTopStack(itemT.edit)
@@ -411,7 +392,7 @@ export function activate(context: vscode.ExtensionContext) {
     editList = editList.filter((e) => !isEqualEdit(e, line, filepath))
   }
   const saveEdits = (): void => {
-    context.workspaceState.update('editList', editList)
+    void context.workspaceState.update('editList', editList)
   }
   const clearEdits = (): void => {
     editList = []
