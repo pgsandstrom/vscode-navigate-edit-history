@@ -2,6 +2,10 @@
 
 All notable changes to the "vscode-navigate-edit-history" extension will be documented in this file.
 
+## 1.6.2
+
+- Optimize for quicker start time
+
 ## 1.6.1
 
 - Fix editor losing focus on newer version of vscode
