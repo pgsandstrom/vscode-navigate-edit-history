@@ -24,7 +24,7 @@
     "url": "https://github.com/pgsandstrom/vscode-navigate-edit-history.git"
   },
   "activationEvents": [
-    "*"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
