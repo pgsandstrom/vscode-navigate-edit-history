@@ -2,6 +2,10 @@
 
 All notable changes to the "vscode-navigate-edit-history" extension will be documented in this file.
 
+## 1.6.3
+
+- Optimization to load faster
+
 ## 1.6.2
 
 - Optimize for quicker start time
