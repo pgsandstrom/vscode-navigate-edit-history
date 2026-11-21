@@ -1,5 +1,7 @@
 # Edit History Bookmarks
 
+> **Archived:** This extension is no longer maintained or needed, since VS Code has since improved its own built-in edit navigation functionality.
+
 A Visual Studio Extension for quick navigation of edits/marks.
 
 ## Features
